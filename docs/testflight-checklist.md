@@ -288,13 +288,13 @@ verdade, e só depois decidir o caminho da loja. As duas partes abaixo refletem 
 - [x] Bundle ID `cloud.blue3.shvia` (mesmo do desktop)
 - [x] `minimumSystemVersion: "15.0"` + `category: productivity` (14.0 na 0.3.11; elevado na 0.6.2 pelo aviso 90068 da Apple — exigência a partir da primavera de 2027; iOS 15 roda nos MESMOS aparelhos que o 14, custo zero de cobertura. Fontes: tauri.conf.json + project.yml deploymentTarget + Package.swift do plugin push)
 - [x] Ícones iOS gerados (`src-tauri/icons/ios/`, desde 0.2.2)
-- [ ] 🔴 `[Mac]` Xcode logado na conta Apple da Blue3 (Settings ▸ Accounts) e, na
-      1ª vez, abrir `gen/apple/*.xcodeproj` ▸ Signing & Capabilities pra confirmar
-      o time e deixar o Xcode criar o provisioning automático.
+- [x] 🟢 `[Mac]` Xcode logado na conta Apple da Blue3 (Settings ▸ Accounts) —
+      **feito em 09/09/2026 no MacBook novo.** Falta ainda, na 1ª vez, abrir
+      `gen/apple/*.xcodeproj` ▸ Signing & Capabilities pra confirmar o time e
+      deixar o Xcode criar o provisioning automático.
 
-> **New MacBook (`Samirs-MBP`) — measured on 09/09/2026.** The machine can already
-> compile for iOS; it cannot yet *sign*. Related: `~/x/migrando_notebook.md` §6,
-> which called this out on 04/09 and is still the pending item.
+> **New MacBook (`Samirs-MBP`) — set up on 09/09/2026.** It compiles for iOS and it
+> signs. This closes §6 of `~/x/migrando_notebook.md`, open since 04/09.
 >
 > | | State |
 > |---|---|
@@ -302,28 +302,45 @@ verdade, e só depois decidir o caminho da loja. As duas partes abaixo refletem 
 > | Rust iOS targets (`aarch64-apple-ios`, `-ios-sim`, `x86_64-apple-ios`) | ✅ installed 09/09 |
 > | XcodeGen 2.46.0 (Homebrew) — same version the 31/07 `ios init` used | ✅ installed 09/09 |
 > | `npm install` + `vite build` + `cargo test` 7/7 + clippy clean | ✅ |
-> | `Developer ID Application: BLUE3 TECNOLOGIA LTDA (S65UBCTPN5)` | ✅ imported — **macOS/desktop notarization, NOT iOS** |
-> | **Apple ID signed into Xcode** | ❌ none — no `Xcode-Token` in the keychain |
-> | **`Apple Development` / `Apple Distribution` certificate** | ❌ absent |
-> | **Provisioning profiles** | ❌ `~/Library/MobileDevice/Provisioning Profiles/` does not exist |
+> | `Apple Development: Samir Hanna Verza (38XVCT76PZ)` | ✅ issued 09/09, `OU=S65UBCTPN5`, valid to 09/09/2027 |
+> | `Developer ID Application: BLUE3 TECNOLOGIA LTDA (S65UBCTPN5)` | ✅ **macOS/desktop notarization, NOT iOS** — leave it alone |
+> | `Apple Distribution` | ❌ none in the team — Xcode mints it at the first App Store archive |
 > | App Store Connect API key (`.p8`, for `altool` uploads without the GUI) | ❌ absent |
 >
-> **Only the first ❌ needs a human**, and it unlocks the other three by itself —
-> Xcode ▸ Settings (`⌘,`) ▸ Accounts ▸ `+` ▸ Apple ID, then pick the team
-> **BLUE3 TECNOLOGIA LTDA (S65UBCTPN5)** ▸ *Manage Certificates…* ▸ `+` ▸
-> *Apple Development*. With **Automatically manage signing** on in the target, Xcode
-> then issues the distribution certificate and the provisioning profiles on its own,
-> so nothing has to be copied from the old MacBook.
+> **Proven, not assumed — validation build on 09/09.** `npm run tauri ios build --
+> --debug --export-method debugging` produced a signed 16 MB IPA, and the §0 pre-upload
+> audit on it comes back clean: `0` `.a`/`libapp` in the payload (the 04/08 gotcha holds),
+> `1` `PrivacyInfo`, `UIDeviceFamily = [1]` (iPhone-only, same as the published 0.6.5), and
+> **all four usage keys present in the bundle itself** — the end-to-end proof that the
+> 0.6.24 fix reaches the binary, not just the tree.
 >
-> If the team does not appear in the list, the Apple ID has no seat in it: an
-> *Account Holder* or *Admin* has to invite it at developer.apple.com ▸ **People ▸
-> Invite**. A "Personal Team" is not a substitute — it cannot sign for distribution.
+> ```
+> Identifier=cloud.blue3.shvia
+> Authority=Apple Development: Samir Hanna Verza (38XVCT76PZ)
+> TeamIdentifier=S65UBCTPN5
+> aps-environment=development       # 'production' comes from the app-store-connect export
+> ```
+>
+> ⚠️ **The trap that cost 20 minutes here, worth knowing before the next machine.**
+> The first `Manage Certificates ▸ + ▸ Apple Development` produced
+> `Apple Development: Tiago Razera (K3SM2U9F48)` — Xcode issues the certificate
+> under **whichever Apple ID is signed in**, and the account inherited on this Mac
+> was a colleague's, not `samirhv@me.com`. The team (`OU=S65UBCTPN5`) was right, so
+> it signed fine and nothing complained; only the `CN` gave it away. Builds would
+> have carried someone else's identity and would break the day his membership
+> changed. **Check the `CN`, not the "Name" column** — the Xcode list showed
+> "Samir's MacBook Pro" for a certificate belonging to somebody else:
+> `security find-identity -v -p codesigning`.
+>
+> Fixed the same day: signed in with `samirhv@me.com` (which turned out to already
+> have a seat in the team — no invite needed), issued the certificate under it,
+> revoked and deleted the other one (`security delete-identity -Z <hash>`).
 >
 > ⚠️ **iOS certificates are not the Developer ID.** Re-issuing `Apple Development` /
 > `Apple Distribution` is routine and does not break anything already published
-> (Apple re-signs App Store binaries itself). The **Developer ID** — the one already
-> in this keychain — is the scarce, dangerous one: revoking it can invalidate BLUE3
-> apps already installed on customers' machines. Do not touch it.
+> (Apple re-signs App Store binaries itself). The **Developer ID** — the one in this
+> keychain — is the scarce, dangerous one: revoking it can invalidate BLUE3 apps
+> already installed on customers' machines. Do not touch it.
 >
 > **None of this blocks the resubmission below (§3)**: the 0.6.5 binary is already in
 > App Store Connect and needs no rebuild, so the signing chain is only needed for the

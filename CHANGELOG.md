@@ -4,6 +4,32 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.25 - the new MacBook signs, and the certificate it first issued was not Samir's
+
+`~/x/migrando_notebook.md` §6, open since 04/09, is closed: this machine now builds and
+signs for iOS. Rust iOS targets and XcodeGen 2.46 installed, Apple ID signed into Xcode,
+and `Apple Development: Samir Hanna Verza (38XVCT76PZ)` issued under `OU=S65UBCTPN5`,
+valid to 09/09/2027.
+
+**The trap worth writing down.** The first `Manage Certificates ▸ + ▸ Apple Development`
+issued `Apple Development: Tiago Razera (K3SM2U9F48)`: Xcode issues under **whichever
+Apple ID is signed in**, and the account inherited on this Mac was a colleague's. The
+team came out right, so it signed and nothing complained — only the `CN` gave it away,
+and the Xcode list showed the name *"Samir's MacBook Pro"* for it. **The "Name" column
+lies; the `CN` does not.** Builds would have carried someone else's identity and would
+break the day his membership changed. Revoked and deleted the same day; `samirhv@me.com`
+turned out to already hold a seat in the team, so no invite was needed.
+
+**Validation build, which is also the end-to-end proof of 0.6.24.** `tauri ios build
+--debug --export-method debugging` produced a signed 16 MB IPA, and the §0 pre-upload
+audit on it is clean: 0 `.a`/`libapp` in the payload, 1 `PrivacyInfo`, `UIDeviceFamily =
+[1]`, and **all four usage keys present in the bundle** — the keys restored in 0.6.24
+reach the binary, not just the tree. Signed `cloud.blue3.shvia`, `TeamIdentifier
+S65UBCTPN5`.
+
+Nothing here changes the pending resubmission, which reuses the 0.6.5 already in App
+Store Connect. This IPA is a probe, not a candidate — do not upload it.
+
 ## 0.6.24 - the four iOS usage keys were deleted by the iPad rollback, and nothing measured it
 
 Found on 09/09/2026 while setting up the new MacBook for the iOS build.
