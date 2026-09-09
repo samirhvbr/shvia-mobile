@@ -4,6 +4,44 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.26 - the App Store Notes lived only in a browser form, and two of their claims were wrong
+
+The **Notes** field of App Store Connect — the first thing a returning reviewer reads —
+held 3,387 characters that existed nowhere in this repository. `docs/testflight-checklist.md`
+§3 carried a *proposed* text that was never the one in the field. Two versions of the same
+paragraph, one in a form and one in a repo, is how a claim drifts away from the product
+without anybody deciding it should. The literal text now lives in
+`docs/app-review-notes.md`, with its review.
+
+**What the review found, ordered by cost:**
+
+🔴 **Account deletion is not mentioned at all** — and that is the guideline the app was
+rejected under on 12/08 (5.1.1(v)). Everything else on that screen is optional next to it.
+
+🔴 **"voice dictation" contradicts the fix and the Resolution Center answer.** Measured:
+the `iOSWebView` / `webSpeechUsavel` guard is at `public/js/app.js:7648-7651` in SHVIA-WEB
+and production serves the same md5 as the local master, so the microphone control **is
+hidden** inside the WebView — that was the fix for 2.1(a). The Notes promise a feature the
+app deliberately no longer offers, while the Resolution Center reply in the same submission
+says the opposite. A reviewer who goes looking does not find it, on the exact guideline that
+already failed once.
+
+🟡 **The push promise has an unverified last mile.** *"a test notification can be triggered
+for the demo account on request"* is an offer someone can hold us to inside a review window.
+The client half is real; what is not verified from here is the Push capability on the App ID,
+`APNS_*` in production, and `aps-environment=production` in the uploaded IPA.
+
+A proposed replacement text is in the new file.
+
+**And the review forced a correction here.** §2.1 of the checklist claimed the push client
+did not exist — an unchecked "(a) shell Tauri" and a dated note reading *"Reconferido em
+30/07 (SHVIA-WEB 2.88.8): `grep __shviaPushToken` não acha nada"*. True on 30/07, false
+since **0.6.0** (04/08), which shipped the complete client: `tauri-plugin-shvia-push` in
+`lib.rs`, and three occurrences of `__shviaPushToken` in SHVIA-WEB's `app.js`. **The
+measurement was right and was never re-run after the thing it measured changed** — 36 days
+of a document asserting the absence of code that was in the build under review. Found only
+because the Notes promised push to Apple.
+
 ## 0.6.25 - the new MacBook signs, and the certificate it first issued was not Samir's
 
 `~/x/migrando_notebook.md` §6, open since 04/09, is closed: this machine now builds and

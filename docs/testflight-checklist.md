@@ -465,17 +465,24 @@ pularia a 4.2, foi descartada por essa decisão.)
               `SendPushNotification`, `php artisan push:test {user}`,
               `config/apns.php`, 11 testes verdes. Contrato completo em
               `~/x/SHVIA/SHVIA-WEB/docs/PUSH/PUSH-APNS-20260716.md`.
-        - [ ] **(a) shell Tauri (ESTE repo)** — entitlement `aps-environment`,
-              pedir permissão, `registerForRemoteNotifications`, injetar o device
-              token na página remota (mesmo `webview.eval` do
-              `window.__shviaShellVersion`) e navegar pro `data.route` no tap.
-              **App Group NÃO é necessário** para alerta simples — só entraria com
-              Notification Service Extension.
-        - [ ] **(a2) front do SHVIA-WEB** — ler `window.__shviaPushToken` → `POST
-              /push/token` com cookie + CSRF; `DELETE` no logout. **Reconferido
-              em 30/07 (SHVIA-WEB 2.88.8): `grep __shviaPushToken public/js/app.js`
-              não acha nada** — o `app.js` só lê o `__shviaShellVersion` (linha
-              ~9185). Continua sem existir.
+        - [x] 🟢 **(a) shell Tauri (ESTE repo) — FEITO na 0.6.0 (04/08).**
+              `tauri-plugin-shvia-push` (em `plugins/`) entra no `lib.rs`, pede a
+              permissão, guarda o device token em estado da casca e o injeta na
+              página com `window.__shviaPushToken` + evento `shvia:push-token`.
+              O entitlement `aps-environment` vem do `project.yml` (ver o aviso
+              de 04/08 sobre o arquivo gerado).
+        - [x] 🟢 **(a2) front do SHVIA-WEB — FEITO.** `grep __shviaPushToken
+              public/js/app.js` acha **3** ocorrências.
+
+              > ⚠️ **As duas linhas acima ficaram desmarcadas por 36 dias depois
+              > de prontas.** Diziam, com data e comando, *"Reconferido em 30/07
+              > (SHVIA-WEB 2.88.8): `grep __shviaPushToken` não acha nada"* — e
+              > era verdade em 30/07. A 0.6.0 entrou em 04/08 com "Push (APNs):
+              > cliente completo na casca" e ninguém voltou aqui. **A medição
+              > estava certa; o que faltou foi refazê-la depois que o objeto
+              > medido mudou.** Achado em 09/09 ao revisar as Notes do ASC, que
+              > prometem push à Apple — a doc teria feito alguém apagar a
+              > promessa por engano.
         - [ ] **(c) portal/infra (Samir)** — capability **Push Notifications** no
               App ID `cloud.blue3.shvia` (é o que muda por app; a `.p8` não) e as
               `APNS_*` no `.env` de produção. ⚠️ `APNS_PRODUCTION`: **false** p/
