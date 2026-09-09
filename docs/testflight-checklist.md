@@ -38,87 +38,52 @@ código atual, e nele estão o guarda `iOSWebView`/`webSpeechUsavel` do microfon
 `shvia.org/suporte.html` respondem **200** com o CNPJ preenchido (o bloqueio duro do
 ASC caiu). O passo 1 da ordem abaixo, portanto, **já está feito**.
 
-### Reenvio — ordem
-1. [x] ~~**Deploy do SHVIA-WEB ≥ 2.100.2**~~ — conferido em 29/08 (acima).
-2. [x] ~~Testar no aparelho~~ — **feito pelo Samir em 29/08**: microfone sumiu do
-   composer e a exclusão apagou a conta de verdade. Build conferido no iPhone por
-   `devicectl`: `cloud.blue3.shvia` **0.6.5**, o mesmo que está em review.
-   **Caminho ATUAL:**
-   avatar/menu → **Configurações** → grupo *Sistema* → **Conta & zona de risco**
-   → *Quero excluir minha conta* → confirmar com a senha → *Excluir definitivamente*.
-   NÃO é mais o fim da aba Perfil (mudou em 22/08 — ver a nota na tabela acima).
-3. [ ] **Gravar vídeo** no aparelho físico, no caminho ATUAL: login → navegar até a
-   exclusão → fluxo completo até a confirmação. Vai nas *Notes* do App Review
-   Information.
-   🔴 **A "correção de 29/08" abaixo estava ERRADA, e a mensagem literal prova.**
-   A Apple pede o vídeo em tantas palavras: *"reply to this message with a screen
-   recording captured on a physical device that demonstrates: Creating a new account
-   or signing in with the demo account / Navigating to the account deletion option /
-   The complete account deletion flow from initiation to confirmation"*. E diz onde
-   ele fica depois: *"Include the recording in the Notes field (…) for future
-   submissions"* — ou seja, **anexado à RESPOSTA e também nas Notes**, não um ou
-   outro. Texto integral em [rejeicao-20260812.md](rejeicao-20260812.md).
+### Reenvio — ✅ SUBMETIDO em 09/09/2026 às 13:36
 
-   > **O que a 0.6.13 acertou:** a frase tinha endurecido de paráfrase em fato,
-   > repetida em quatro arquivos sem fonte. **O que ela errou:** corrigiu a paráfrase
-   > **com outra paráfrase**, escrita por quem também não tinha lido a mensagem — e
-   > escreveu a regra que a teria pegado (*colar a mensagem literal*) arquivando-a
-   > para a PRÓXIMA rejeição, enquanto o original DESTA estava a um clique no App
-   > Store Connect. Uma afirmação errada e a correção dela podem ter o mesmo defeito;
-   > a segunda só parece mais rigorosa porque está derrubando alguma coisa.
+Submission ID `e0dccd27-4003-48e8-ac7e-f4ec6ca16e31` (o MESMO da rejeição de 12/08 —
+é a mesma thread, reenviada), build **0.6.5 (0.6.5)**, status *Waiting for Review*,
+release **automático** (decisão do Samir).
 
-   ~~Texto anterior, mantido como registro:~~ *"o 'a Apple exige o vídeo' é alegação
-   NOSSA, não citação dela (…) vídeo é reforço barato que costuma evitar uma ida e
-   volta, não requisito provado."*
+1. [x] **Deploy do SHVIA-WEB** — produção byte-a-byte igual ao master (md5 do
+   `app.js`), `/up` 200, privacidade e suporte 200. Reconferido em 09/09.
+2. [x] **Testado no aparelho** — exclusão apaga de verdade; Face ID abre o app
+   (item 10 do smoke-test, fechado em 09/09); microfone **grava e transcreve**.
+3. [x] **Vídeo gravado** no iPhone, com conta descartável (`appletest@shvia.org`,
+   não a do revisor). Original 61 MB / 1320×2868 HEVC reencodado para **3,0 MB**
+   em H.264 na MESMA resolução (`ShvIA-account-deletion-iPhone.mp4`). Cobre os
+   três itens que a Apple lista, mais o login recusado no fim — que mostra
+   exclusão e não desativação. Anexado no App Review Information.
+4. [x] **Notes reescritas** — 1.476 caracteres. Ganharam o caminho da exclusão
+   (ausente até então, e era a diretriz da reprovação) e perderam a promessa de
+   ditado que contradizia a própria resposta. Texto e revisão em
+   [app-review-notes.md](app-review-notes.md).
+   ⚠️ **O contador daquele campo é REGRESSIVO** — mostra o que resta de 4.000.
+5. [x] **Conta demo conferida** (`apple@shvia.org`, viva, senha bate com o ASC).
+6. [x] **Submit for Review com o MESMO 0.6.5.** Nenhum binário novo.
 
-   ⚠️ **NÃO gravar logado como `apple@shvia.org`.** O fluxo apaga de verdade e no
-   fim da gravação a conta que o revisor vai usar não existe mais. Gravar com uma
-   conta descartável, criada só para isso.
-4. [ ] Responder no **Resolution Center** apontando as duas correções (texto pronto
-   para colar abaixo).
-5. [ ] Conferir que **`apple@shvia.org` ("Apple Corp", criada em 05/08/2026) continua
-   viva e com a senha que está no ASC** antes de submeter — revisor que não entra
-   reprova por 2.1 de novo. **Conferido pelo Samir em 29/08: OK.**
-   Consequência aceita: se o revisor testar a exclusão, ele apaga essa conta. Num
-   segundo ciclo de review ela precisa ser **recriada** com a mesma senha do ASC.
-6. [ ] **Submit for Review** com o MESMO build 0.6.5. **Não subir build novo.**
+**Sem resposta no Resolution Center, e está certo assim.** Depois do reenvio a
+thread fica só-leitura — não há caixa de resposta. A própria mensagem cobre o caso:
+*"Include the recording in the Notes field … for future submissions"*, e este reenvio
+é essa submissão. Texto integral em [rejeicao-20260812.md](rejeicao-20260812.md).
 
-> 🔴 **Corrigido em 09/09/2026, horas antes do reenvio — o texto anterior dizia à
-> Apple que o microfone tinha sido ESCONDIDO, e ele está visível e funcionando.**
->
-> A correção de 12/08 (web 2.100.2) realmente escondeu o botão: em WKWebView o
-> `webkitSpeechRecognition` existe e não funciona. O que ninguém voltou para ver é
-> que o `app.js` tem um **Plano B** logo abaixo (`else if (canRecord &&
-> window.SHVIA_STT_ENABLED)`, linha 7654): com STT de servidor ligado, o botão
-> volta — gravando e transcrevendo no Whisper da casa. E o STT **foi ligado depois**:
-> `config("stt.enabled")` responde `true` em produção (fallback
-> `(bool) env('STT_HOST')`, com `STT_HOST=http://127.0.0.1:8000`).
->
-> **O teste do Samir em 29/08 — *"microfone sumiu do composer"* — estava certo
-> naquele dia e envelheceu.** É o mesmo padrão do §2.1 (push declarado ausente por
-> 36 dias depois de pronto): a medição estava correta e ninguém a refez depois que
-> o objeto medido mudou. Reprovado de novo na MESMA diretriz, agora pela afirmação
-> contrária, seria o desfecho.
->
-> **Medido em 09/09 no iPhone:** o ícone aparece no composer e a caixa mostra
-> *"Transcrevendo…"*. A resposta nova é mais forte que a antiga — *"o botão
-> funciona"* vence *"escondemos o botão"*.
->
-> ⚠️ **O risco que vem junto, e a medição que o fecha.** `stt.enabled` é
-> `(bool) env('STT_HOST')` — ele **não pinga o serviço**. O botão aparece pela
-> presença de uma variável, não pela saúde do Whisper; se o serviço cair durante a
-> review, ele volta a ser o controle morto da 2.1(a), agora com uma carta
-> prometendo o contrário.
->
-> Conferido em 09/09, antes de submeter: o Whisper é o container Docker `whisper`
-> (`127.0.0.1:8000`, no ar há 5 dias), `/health` responde **200**, e a política de
-> restart é **`unless-stopped`** — ou seja, ele volta sozinho depois de um reboot.
-> A janela de review pode cair num fim de semana; era essa a pergunta.
->
-> **O que continua verdade:** um `docker stop` deliberado não é revertido por essa
-> política, e nada no cliente detecta a queda. A defesa real seria o `stt.enabled`
-> refletir a saúde do serviço em vez da existência da variável — item de fila, não
-> bloqueio do reenvio.
+> **A lição de método deste dia**, e ela se repetiu quatro vezes: **medição certa que
+> ninguém refez depois que o objeto mudou.** O push declarado ausente por 36 dias
+> depois de pronto (§2.1). O microfone declarado escondido depois de voltar a
+> funcionar. As quatro chaves do `Info.plist` apagadas por um commit sobre iPad e não
+> medidas por 26 dias. E o "a Apple não exige vídeo" escrito sem ler a mensagem que
+> estava a um clique. Nenhuma delas foi descuido na hora de medir — todas foram a
+> falta de uma segunda medição. **Checkbox não tem data de validade; medição tem.**
+
+### O que fica para a próxima passada
+
+- [ ] Registrar a **versão exata** do build instalado por cabo que exercitou o Face ID.
+- [ ] Remover as **3 capturas de iPad** da ficha (higiene: o binário é
+      `TARGETED_DEVICE_FAMILY: "1"`). **Não é defesa** — a review de 12/08 rodou em
+      iPad Air com este mesmo binário iPhone-only.
+- [ ] `stt.enabled` reflete a existência de `STT_HOST`, não a saúde do Whisper. Se o
+      container cair durante a review, o microfone volta a ser controle morto — que é
+      literalmente a 2.1(a). O container é `unless-stopped` e `/health` responde 200
+      (conferido em 09/09), mas a guarda certa é a saúde, não a variável.
 
 ### Texto pronto — Resolution Center
 

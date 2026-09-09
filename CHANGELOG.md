@@ -4,6 +4,36 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.31 - resubmitted: 0.6.5 is back in review, and the checklist says so
+
+Submission `e0dccd27-4003-48e8-ac7e-f4ec6ca16e31` — the same thread as the 12/08
+rejection — went back to *Waiting for Review* on 09/09/2026 at 13:36, with the same
+build **0.6.5**, no new binary, automatic release. §3 of the checklist now records
+what was actually done instead of six open boxes.
+
+What the day changed in the submission: the account-deletion path entered the Notes,
+where it had never been, on the guideline that caused the rejection; the claim that the
+microphone was hidden came out, because it records and transcribes again; the video was
+recorded with a throwaway account and re-encoded from 61 MB to 3.0 MB at the same
+1320×2868; Face ID was exercised on hardware for the first time.
+
+No Resolution Center reply, and that is correct: after resubmission the thread is
+read-only, and Apple's own message names the Notes field as the place *"for future
+submissions"* — which this is.
+
+**The method lesson, and it repeated four times in one day: a correct measurement that
+nobody re-ran after the thing it measured changed.** Push declared absent for 36 days
+after it shipped. The microphone declared hidden after it came back. The four
+`Info.plist` keys deleted by a commit about iPads and unmeasured for 26 days. And *"Apple
+does not require the video"*, written without opening a message that was one click away.
+None was carelessness at the moment of measuring; all four were the absence of a second
+measurement. **A checkbox has no expiry date; a measurement does.**
+
+Three items carried forward, all recorded with why they are not blockers: the exact
+version of the cable-installed build that exercised Face ID, the leftover iPad
+screenshots, and `stt.enabled` reflecting a variable rather than the transcription
+service's health.
+
 ## 0.6.30 - the literal rejection is finally in the repository, and it refutes our own correction of it
 
 `docs/rejeicao-20260812.md` holds the message from App Review verbatim — Submission ID,
