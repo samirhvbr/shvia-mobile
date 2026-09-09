@@ -70,6 +70,43 @@ ASC caiu). O passo 1 da ordem abaixo, portanto, **já está feito**.
    segundo ciclo de review ela precisa ser **recriada** com a mesma senha do ASC.
 6. [ ] **Submit for Review** com o MESMO build 0.6.5. **Não subir build novo.**
 
+> 🔴 **Corrigido em 09/09/2026, horas antes do reenvio — o texto anterior dizia à
+> Apple que o microfone tinha sido ESCONDIDO, e ele está visível e funcionando.**
+>
+> A correção de 12/08 (web 2.100.2) realmente escondeu o botão: em WKWebView o
+> `webkitSpeechRecognition` existe e não funciona. O que ninguém voltou para ver é
+> que o `app.js` tem um **Plano B** logo abaixo (`else if (canRecord &&
+> window.SHVIA_STT_ENABLED)`, linha 7654): com STT de servidor ligado, o botão
+> volta — gravando e transcrevendo no Whisper da casa. E o STT **foi ligado depois**:
+> `config("stt.enabled")` responde `true` em produção (fallback
+> `(bool) env('STT_HOST')`, com `STT_HOST=http://127.0.0.1:8000`).
+>
+> **O teste do Samir em 29/08 — *"microfone sumiu do composer"* — estava certo
+> naquele dia e envelheceu.** É o mesmo padrão do §2.1 (push declarado ausente por
+> 36 dias depois de pronto): a medição estava correta e ninguém a refez depois que
+> o objeto medido mudou. Reprovado de novo na MESMA diretriz, agora pela afirmação
+> contrária, seria o desfecho.
+>
+> **Medido em 09/09 no iPhone:** o ícone aparece no composer e a caixa mostra
+> *"Transcrevendo…"*. A resposta nova é mais forte que a antiga — *"o botão
+> funciona"* vence *"escondemos o botão"*.
+>
+> ⚠️ **O risco que vem junto, e a medição que o fecha.** `stt.enabled` é
+> `(bool) env('STT_HOST')` — ele **não pinga o serviço**. O botão aparece pela
+> presença de uma variável, não pela saúde do Whisper; se o serviço cair durante a
+> review, ele volta a ser o controle morto da 2.1(a), agora com uma carta
+> prometendo o contrário.
+>
+> Conferido em 09/09, antes de submeter: o Whisper é o container Docker `whisper`
+> (`127.0.0.1:8000`, no ar há 5 dias), `/health` responde **200**, e a política de
+> restart é **`unless-stopped`** — ou seja, ele volta sozinho depois de um reboot.
+> A janela de review pode cair num fim de semana; era essa a pergunta.
+>
+> **O que continua verdade:** um `docker stop` deliberado não é revertido por essa
+> política, e nada no cliente detecta a queda. A defesa real seria o `stt.enabled`
+> refletir a saúde do serviço em vez da existência da variável — item de fila, não
+> bloqueio do reenvio.
+
 ### Texto pronto — Resolution Center
 
 > Copiar como está. É resposta a **dois** apontamentos, então vai em dois blocos;
@@ -91,11 +128,14 @@ Guideline 2.1 - Performance - App Completeness (microphone button did nothing)
 
 You were right: the button was visible but inert. Our web client detected speech
 support via `webkitSpeechRecognition`, which IS exposed inside WKWebView but is a
-Safari-only privilege - calling start() produced no result and no error. We now
-detect the embedded WebView (iOS user agent without the "Safari/" token) and, when
-speech recognition cannot work, the microphone control is hidden entirely rather
-than shown as a dead control. A 2.5-second watchdog covers any WebView we do not
-recognize.
+Safari-only privilege - calling start() produced no result and no error.
+
+The microphone now works inside the app. Rather than relying on that Safari-only
+API, the client detects the embedded WebView (iOS user agent without the "Safari/"
+token) and routes speech input through a different path: it records the audio and
+transcribes it on our own server. Tapping the microphone in the message composer
+records, shows a "Transcribing..." state, and writes the transcription into the
+input field. Verified on a physical iPhone on 09 Sep 2026.
 
 Guideline 5.1.1(v) - Data Collection and Storage (account deletion)
 
@@ -126,9 +166,8 @@ risco" -> "Quero excluir minha conta" -> confirm with the account password ->
 "Excluir definitivamente". This permanently deletes the account. A screen recording
 of this exact flow on a physical iPhone is attached.
 
-Microphone (Guideline 2.1): speech input is not offered inside the app's WebView,
-so the microphone control is hidden. The camera/microphone usage descriptions
-remain in the bundle for attachments.
+Microphone (Guideline 2.1): speech input works inside the app's WebView. The
+microphone in the message composer records and is transcribed on our server.
 
 This submission reuses build 0.6.5, unchanged. Both issues from the 12 Aug 2026
 review were fixed server-side and are live in production.

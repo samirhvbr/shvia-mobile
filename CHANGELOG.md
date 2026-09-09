@@ -4,6 +4,38 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.29 - the letter to Apple said the microphone was hidden, and it is visible and working
+
+Found on 09/09/2026, hours before the resubmission, and it would have been contradicted
+by the reviewer's first screen — on **the same guideline that already rejected the app**.
+
+The 12/08 fix (web 2.100.2) did hide the button: inside WKWebView
+`webkitSpeechRecognition` exists and does not work, so a visible control did nothing.
+What nobody went back to look at is the **Plan B two lines below it** in `app.js:7654` —
+`else if (canRecord && window.SHVIA_STT_ENABLED)` — which brings the button back when
+server-side transcription is on. And it was turned on afterwards:
+`config("stt.enabled")` answers `true` in production, through the
+`(bool) env('STT_HOST')` fallback with `STT_HOST=http://127.0.0.1:8000`.
+
+**Samir's device test on 29/08 — *"the microphone disappeared from the composer"* — was
+true that day and aged.** Same shape as §2.1 of the checklist, which declared the push
+client absent for 36 days after it shipped: the measurement was right, and nobody re-ran
+it after the thing it measured changed. Two of these in one repository in one week is
+not bad luck; it is what a checkbox does when it outlives its measurement.
+
+**Measured on the iPhone on 09/09:** the icon is in the composer and the box shows
+*"Transcrevendo…"*. So the prepared Resolution Center answer and the App Review Notes
+were both rewritten — and the true version is the stronger one: *"the button works"*
+beats *"we hid the button"*.
+
+**The risk that comes with it, and the measurement that closes it.** `stt.enabled` is
+`(bool) env('STT_HOST')`: the button appears because a variable exists, not because the
+service is healthy. Whisper runs as the Docker container `whisper` — `/health` returns
+**200** and its restart policy is **`unless-stopped`**, so it survives a reboot, which
+was the question worth asking for a review window that can land on a weekend. What
+stays true is that a deliberate stop is not reverted and nothing on the client notices;
+making `stt.enabled` reflect health rather than presence is a queue item, not a blocker.
+
 ## 0.6.28 - Face ID was exercised on the device, closing the submission's declared number-one risk
 
 **Samir, 09/09/2026:** the build installed over the cable on his iPhone opens with
