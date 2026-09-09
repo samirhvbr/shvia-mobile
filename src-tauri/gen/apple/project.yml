@@ -58,8 +58,25 @@ targets:
         # à mão em 30/07. Quem manda no bundle é `shvia-mobile_iOS/Info.plist`
         # (INFOPLIST_FILE do alvo) — isto aqui só volta a valer se o XcodeGen
         # regenerar o .xcodeproj, o que só acontece num novo `tauri ios init`.
-        CFBundleShortVersionString: 0.6.19
-        CFBundleVersion: "0.6.19"
+        CFBundleShortVersionString: 0.6.24
+        CFBundleVersion: "0.6.24"
+        # The four keys below are the SAME lesson as the entitlements block: XcodeGen
+        # GENERATES the Info.plist from here, so this is the only place that survives an
+        # `xcodegen generate` / `tauri ios init`. They also live in `src-tauri/Info.ios.plist`
+        # (the source Tauri would read), but 31/07 proved `ios init` does NOT merge that
+        # file — trusting it is what left gen/apple stale from 14/07 to 30/07.
+        # 0.6.8 (14/08) deleted all four from the generated plist together with the ~ipad
+        # orientations, and the hole went 26 days unseen because no new build came out of
+        # this tree since — the 0.6.5 under review is OLDER and carries the keys.
+        # Without NSFaceIDUsageDescription iOS KILLS the process on the first evaluatePolicy
+        # call, which in this app is the "Ativar Face ID" button of the first run: the very
+        # first screen an Apple reviewer sees.
+        NSMicrophoneUsageDescription: O microfone é usado para ditar mensagens por voz no chat.
+        NSCameraUsageDescription: A câmera é usada para tirar fotos e anexá-las ao chat.
+        NSFaceIDUsageDescription: O Face ID desbloqueia o ShvIA localmente, sem digitar a senha a cada acesso.
+        # Export-compliance exemption (system HTTPS/TLS only): avoids the manual
+        # question on EVERY App Store Connect upload.
+        ITSAppUsesNonExemptEncryption: false
     # ATENÇÃO: o XcodeGen GERA o arquivo .entitlements a partir daqui a cada
     # regeneração — edição manual no arquivo morre no próximo generate (foi o
     # que apagou o aps-environment em 04/08). A fonte da verdade é ESTE bloco.

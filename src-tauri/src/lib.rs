@@ -507,4 +507,59 @@ mod tests {
         );
     }
 
+    /// The four iOS usage/compliance keys are in BOTH `project.yml` and the generated
+    /// `Info.plist` — the regression 0.6.8 shipped and nothing measured for 26 days.
+    ///
+    /// `NSFaceIDUsageDescription` is the sharp one: without it iOS **terminates the
+    /// process** on the first `evaluatePolicy` call, which in this app is the "Ativar
+    /// Face ID" button of the first run — the first screen an Apple reviewer sees. The
+    /// other three cost less but cost every time: no mic/camera description and the
+    /// WebView's attachment paths die, no `ITSAppUsesNonExemptEncryption` and the export
+    /// compliance question comes back on EVERY App Store Connect upload.
+    ///
+    /// Why it checks two files instead of one: `project.yml` is the source XcodeGen
+    /// generates from, and the generated `Info.plist` is the `INFOPLIST_FILE` the target
+    /// actually bundles. Keys in the yml alone are absent until somebody regenerates;
+    /// keys in the plist alone die at the next `tauri ios init` — which is exactly how
+    /// `aps-environment` was lost on 04/08. The pair has to hold, so the ruler measures
+    /// the pair. `src-tauri/Info.ios.plist` is deliberately NOT accepted as proof: it is
+    /// the file 31/07 proved `ios init` does not merge.
+    #[test]
+    fn as_quatro_chaves_do_ios_estao_nas_duas_fontes() {
+        let raiz = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        const CHAVES: [&str; 4] = [
+            "NSMicrophoneUsageDescription",
+            "NSCameraUsageDescription",
+            "NSFaceIDUsageDescription",
+            "ITSAppUsesNonExemptEncryption",
+        ];
+        // gen/apple is generated and gitignored in a fresh clone of some checkouts; a
+        // ruler that silently passes when the file is missing measures nothing, so an
+        // absent gen/apple skips loudly rather than green.
+        let fontes = [
+            raiz.join("gen/apple/project.yml"),
+            raiz.join("gen/apple/shvia-mobile_iOS/Info.plist"),
+        ];
+        if fontes.iter().any(|f| !f.exists()) {
+            eprintln!("gen/apple ausente — régua pulada (rode `tauri ios init` no Mac)");
+            return;
+        }
+        let mut faltando: Vec<String> = Vec::new();
+        for f in &fontes {
+            let t = std::fs::read_to_string(f).unwrap_or_else(|e| panic!("{} ilegível: {e}", f.display()));
+            for c in CHAVES {
+                if !t.contains(c) {
+                    faltando.push(format!("{c} em {}", f.display()));
+                }
+            }
+        }
+        assert!(
+            faltando.is_empty(),
+            "chave(s) de uso/conformidade do iOS ausente(s):\n  {}\n\
+             Sem NSFaceIDUsageDescription o iOS ENCERRA o app no primeiro Face ID. \
+             As quatro moram no bloco `info: properties:` do project.yml (fonte do \
+             XcodeGen) E no Info.plist gerado (o que vai pro bundle).",
+            faltando.join("\n  ")
+        );
+    }
 }

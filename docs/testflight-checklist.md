@@ -288,9 +288,46 @@ verdade, e só depois decidir o caminho da loja. As duas partes abaixo refletem 
 - [x] Bundle ID `cloud.blue3.shvia` (mesmo do desktop)
 - [x] `minimumSystemVersion: "15.0"` + `category: productivity` (14.0 na 0.3.11; elevado na 0.6.2 pelo aviso 90068 da Apple — exigência a partir da primavera de 2027; iOS 15 roda nos MESMOS aparelhos que o 14, custo zero de cobertura. Fontes: tauri.conf.json + project.yml deploymentTarget + Package.swift do plugin push)
 - [x] Ícones iOS gerados (`src-tauri/icons/ios/`, desde 0.2.2)
-- [ ] `[Mac]` Xcode logado na conta Apple da Blue3 (Settings ▸ Accounts) e, na
+- [ ] 🔴 `[Mac]` Xcode logado na conta Apple da Blue3 (Settings ▸ Accounts) e, na
       1ª vez, abrir `gen/apple/*.xcodeproj` ▸ Signing & Capabilities pra confirmar
       o time e deixar o Xcode criar o provisioning automático.
+
+> **New MacBook (`Samirs-MBP`) — measured on 09/09/2026.** The machine can already
+> compile for iOS; it cannot yet *sign*. Related: `~/x/migrando_notebook.md` §6,
+> which called this out on 04/09 and is still the pending item.
+>
+> | | State |
+> |---|---|
+> | Xcode 26.6 (17F113), `xcode-select` → `/Applications/Xcode.app` | ✅ |
+> | Rust iOS targets (`aarch64-apple-ios`, `-ios-sim`, `x86_64-apple-ios`) | ✅ installed 09/09 |
+> | XcodeGen 2.46.0 (Homebrew) — same version the 31/07 `ios init` used | ✅ installed 09/09 |
+> | `npm install` + `vite build` + `cargo test` 7/7 + clippy clean | ✅ |
+> | `Developer ID Application: BLUE3 TECNOLOGIA LTDA (S65UBCTPN5)` | ✅ imported — **macOS/desktop notarization, NOT iOS** |
+> | **Apple ID signed into Xcode** | ❌ none — no `Xcode-Token` in the keychain |
+> | **`Apple Development` / `Apple Distribution` certificate** | ❌ absent |
+> | **Provisioning profiles** | ❌ `~/Library/MobileDevice/Provisioning Profiles/` does not exist |
+> | App Store Connect API key (`.p8`, for `altool` uploads without the GUI) | ❌ absent |
+>
+> **Only the first ❌ needs a human**, and it unlocks the other three by itself —
+> Xcode ▸ Settings (`⌘,`) ▸ Accounts ▸ `+` ▸ Apple ID, then pick the team
+> **BLUE3 TECNOLOGIA LTDA (S65UBCTPN5)** ▸ *Manage Certificates…* ▸ `+` ▸
+> *Apple Development*. With **Automatically manage signing** on in the target, Xcode
+> then issues the distribution certificate and the provisioning profiles on its own,
+> so nothing has to be copied from the old MacBook.
+>
+> If the team does not appear in the list, the Apple ID has no seat in it: an
+> *Account Holder* or *Admin* has to invite it at developer.apple.com ▸ **People ▸
+> Invite**. A "Personal Team" is not a substitute — it cannot sign for distribution.
+>
+> ⚠️ **iOS certificates are not the Developer ID.** Re-issuing `Apple Development` /
+> `Apple Distribution` is routine and does not break anything already published
+> (Apple re-signs App Store binaries itself). The **Developer ID** — the one already
+> in this keychain — is the scarce, dangerous one: revoking it can invalidate BLUE3
+> apps already installed on customers' machines. Do not touch it.
+>
+> **None of this blocks the resubmission below (§3)**: the 0.6.5 binary is already in
+> App Store Connect and needs no rebuild, so the signing chain is only needed for the
+> *next* build (push/M3, or any store change that needs a new binary).
 
 ### 1.2 Privacidade & conformidade (exigido pelo App Store Connect no upload)
 - [x] `NSMicrophoneUsageDescription` + `NSCameraUsageDescription` — no
@@ -304,6 +341,29 @@ verdade, e só depois decidir o caminho da loja. As duas partes abaixo refletem 
 - [x] `ITSAppUsesNonExemptEncryption = false` — mesma história: entrou na 0.3.11,
       nunca chegou ao `gen/apple`; reconciliado na 0.5.3. Evita a pergunta de
       conformidade de exportação a **cada** upload.
+
+> ⚠️ **The three `[x]` above were false from 14/08 to 09/09/2026, and this box is
+> the correction.** Commit **0.6.8**, removing the `~ipad` orientations to go back
+> to iPhone-only, deleted the whole tail of `gen/apple/shvia-mobile_iOS/Info.plist`
+> — the four keys went with the orientations, in a diff nobody read as touching
+> them. Found on 09/09 while setting up the new MacBook.
+>
+> **The submission is NOT affected**: 0.6.5, the binary under review, is *older*
+> than the regression and carries all four keys (`git show 3c68779:` — verified).
+> What was at risk was the *next* build out of this tree: Face ID killing the app
+> on the reviewer's first screen, and mic/camera dying in the WebView.
+>
+> **Why it survived 26 days:** nothing measured it, and no build came out of the
+> tree in between — the doc said `[x]`, and the doc was the only thing anybody
+> checked. **Root cure applied in 0.6.24:** the four keys now live in the
+> `info: properties:` block of `project.yml` (which is what XcodeGen *generates*
+> the plist from, so they survive `tauri ios init`) **and** in the generated
+> plist, with the ruler `as_quatro_chaves_do_ios_estao_nas_duas_fontes` failing
+> `cargo test` if either copy loses one. Same lesson the `.entitlements` taught on
+> 04/08: for a generated file, the source of truth is the generator's input.
+>
+> `src-tauri/Info.ios.plist` still carries the four, on purpose — but it is **not**
+> accepted as proof by the ruler: 31/07 proved `tauri ios init` does not merge it.
 - [x] `PrivacyInfo.xcprivacy` criado (`gen/apple/shvia-mobile_iOS/`) — sem tracking,
       sem tipos de dado coletados pelo binário, UserDefaults (CA92.1)
 - [ ] 🔴 `[Mac]` **O `PrivacyInfo.xcprivacy` NÃO está no target — confirmado em

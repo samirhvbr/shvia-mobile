@@ -4,6 +4,52 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.24 - the four iOS usage keys were deleted by the iPad rollback, and nothing measured it
+
+Found on 09/09/2026 while setting up the new MacBook for the iOS build.
+
+**Commit 0.6.8 (14/08), removing the `~ipad` orientations to go back to iPhone-only,
+deleted the whole tail of `gen/apple/shvia-mobile_iOS/Info.plist`** — the four usage and
+compliance keys went out with the orientations, in a diff that reads as being about
+iPads. `NSMicrophoneUsageDescription`, `NSCameraUsageDescription`,
+`NSFaceIDUsageDescription` and `ITSAppUsesNonExemptEncryption` have been absent from the
+file the Xcode target bundles for 26 days.
+
+**The submission is not affected.** 0.6.5, the binary in review at App Store Connect, is
+*older* than the regression and carries all four (`git show 3c68779:` — verified). What
+was at risk was the next build out of this tree, and specifically the risk this
+repository had already named as number one: without `NSFaceIDUsageDescription` iOS
+**terminates the process** on the first `evaluatePolicy` call, which in this app is the
+"Ativar Face ID" button of the first run — the first screen an Apple reviewer sees. The
+same build would also have lost mic and camera in the WebView, and would have brought
+back the export-compliance question on every upload.
+
+**Why it survived 26 days:** `docs/testflight-checklist.md` §1.2 said `[x]` for all
+three, no build came out of the tree in between, and the checklist was the only thing
+anybody consulted. A checkbox is not a measurement.
+
+**Root cure, not a patch.** The four keys now live in the `info: properties:` block of
+`gen/apple/project.yml` — which is what XcodeGen *generates* the plist from, so they
+survive `xcodegen generate` and `tauri ios init` — **and** in the generated plist, which
+is what the target actually bundles. This is the lesson `.entitlements` taught on 04/08,
+when a hand edit to a generated file silently dropped `aps-environment`: for a generated
+file, the source of truth is the generator's input. `src-tauri/Info.ios.plist` still
+carries the four on purpose, but it is explicitly *not* accepted as proof — 31/07 proved
+`tauri ios init` does not merge it.
+
+**New ruler `as_quatro_chaves_do_ios_estao_nas_duas_fontes`**, which fails `cargo test`
+if either copy loses any of the four. It checks both files rather than one because keys
+in the yml alone are absent until somebody regenerates, and keys in the plist alone die
+at the next init.
+
+The checklist's §1.2 now carries the correction instead of the three false `[x]`, and
+§1.1 records what the new MacBook can and cannot do: it compiles for iOS (Rust targets
+and XcodeGen installed today) but has **no Apple ID in Xcode and no iOS certificate**, so
+it cannot yet sign. That blocks no part of the pending resubmission, which reuses 0.6.5.
+
+**Measured.** 7/7 green, clippy clean. Reversion: `plutil -remove
+NSFaceIDUsageDescription` on the generated plist → red, naming the key and the file.
+
 ## 0.6.24 - the release workflow was the one action left unpinned, and it made the ruler red
 
 `toda_action_do_ci_esta_pinada_por_sha`, added in 0.6.19, has been **failing in master
