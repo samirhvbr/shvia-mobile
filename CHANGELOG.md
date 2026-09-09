@@ -4,6 +4,38 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.30 - the literal rejection is finally in the repository, and it refutes our own correction of it
+
+`docs/rejeicao-20260812.md` holds the message from App Review verbatim — Submission ID,
+review device, both guidelines, the Next Steps. This obeys the rule written on 29/08
+(*"paste the literal Resolution Center message into `docs/` on the NEXT rejection"*),
+and it did not take a next rejection: the original was in App Store Connect the whole
+time, and it took opening the thread to reply to it.
+
+**It refutes 0.6.13.** That entry declared *"'Apple requires the video' is OUR claim,
+not a quote from them (…) a video is cheap reinforcement, not a proven requirement"*.
+The message asks for it in as many words: *"reply to this message with a screen
+recording captured on a physical device that demonstrates"* — and lists the three
+things it must show, all of which the recording of 09/09 does. It also says the Notes
+field is **additional**: *"Include the recording in the Notes field (…) for future
+submissions"*. So the video goes on the **reply** and in the Notes, not one or the
+other.
+
+**The mechanism is worth more than the fact.** 0.6.13 was right that the claim had
+hardened from paraphrase into fact across four files with no source. It then corrected
+that paraphrase **with another paraphrase**, written by someone who also had not read
+the message — and it wrote the very rule that would have caught it, filing it for the
+*next* rejection while the original of *this* one was one click away. **A wrong claim
+and its correction can share the same defect**, and the second one feels more rigorous
+precisely because it is tearing something down.
+
+Two more things the literal text settles: the review ran on an **iPad Air 11-inch** on
+a binary already at `TARGETED_DEVICE_FAMILY: "1"`, so iPhone-only does not keep the app
+off a tablet in review and the leftover iPad screenshots were never the invitation; and
+the 2.1(a) complaint is literally *"no action or further response was produced after we
+tapped on Microphone option"*, which the microphone working since 09/09 answers as
+written.
+
 ## 0.6.29 - the letter to Apple said the microphone was hidden, and it is visible and working
 
 Found on 09/09/2026, hours before the resubmission, and it would have been contradicted

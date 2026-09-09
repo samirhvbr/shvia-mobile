@@ -13,7 +13,8 @@ System WebView). Irmão do `SHVIA-DESKTOP` (desktop) e do `SHVIA` (servidor Lara
 > publicação) · [loja-ficha.md](docs/loja-ficha.md) (campos do App Store Connect,
 > prontos para colar) · [smoke-test.md](docs/smoke-test.md) (roteiro manual no
 > aparelho) · [app-review-notes.md](docs/app-review-notes.md) (o texto das Notes
-> do App Store Connect, com a revisão de 09/09/2026). O `docs/` deste repo é pequeno o bastante para caber aqui — não há
+> do App Store Connect, com a revisão de 09/09/2026) · [rejeicao-20260812.md](docs/rejeicao-20260812.md)
+> (a mensagem literal da App Review). O `docs/` deste repo é pequeno o bastante para caber aqui — não há
 > `docs/README.md` separado, e o teste `todo_doc_e_alcancavel` reprova documento
 > que fique de fora desta lista.
 

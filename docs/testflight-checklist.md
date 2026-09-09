@@ -50,14 +50,27 @@ ASC caiu). O passo 1 da ordem abaixo, portanto, **já está feito**.
 3. [ ] **Gravar vídeo** no aparelho físico, no caminho ATUAL: login → navegar até a
    exclusão → fluxo completo até a confirmação. Vai nas *Notes* do App Review
    Information.
-   ⚠️ **Correção de 29/08 — o "a Apple exige o vídeo" é alegação NOSSA, não citação
-   dela.** A frase se repetia em quatro arquivos (aqui, no roadmap, na ficha e no
-   `SHVIA-WEB/docs/CONTA/EXCLUSAO-DE-CONTA.md`) sem que **a mensagem literal da
-   rejeição estivesse guardada em lugar nenhum** — foi paráfrase que endureceu em
-   fato. O que a 5.1.1(v) pede com certeza é **indicar o caminho** até a exclusão;
-   vídeo é reforço barato que costuma evitar uma ida e volta, não requisito provado.
-   **Regra nova: colar a mensagem literal do Resolution Center em `docs/` na
-   PRÓXIMA rejeição.** Sem o original, a doc vira telefone sem fio.
+   🔴 **A "correção de 29/08" abaixo estava ERRADA, e a mensagem literal prova.**
+   A Apple pede o vídeo em tantas palavras: *"reply to this message with a screen
+   recording captured on a physical device that demonstrates: Creating a new account
+   or signing in with the demo account / Navigating to the account deletion option /
+   The complete account deletion flow from initiation to confirmation"*. E diz onde
+   ele fica depois: *"Include the recording in the Notes field (…) for future
+   submissions"* — ou seja, **anexado à RESPOSTA e também nas Notes**, não um ou
+   outro. Texto integral em [rejeicao-20260812.md](rejeicao-20260812.md).
+
+   > **O que a 0.6.13 acertou:** a frase tinha endurecido de paráfrase em fato,
+   > repetida em quatro arquivos sem fonte. **O que ela errou:** corrigiu a paráfrase
+   > **com outra paráfrase**, escrita por quem também não tinha lido a mensagem — e
+   > escreveu a regra que a teria pegado (*colar a mensagem literal*) arquivando-a
+   > para a PRÓXIMA rejeição, enquanto o original DESTA estava a um clique no App
+   > Store Connect. Uma afirmação errada e a correção dela podem ter o mesmo defeito;
+   > a segunda só parece mais rigorosa porque está derrubando alguma coisa.
+
+   ~~Texto anterior, mantido como registro:~~ *"o 'a Apple exige o vídeo' é alegação
+   NOSSA, não citação dela (…) vídeo é reforço barato que costuma evitar uma ida e
+   volta, não requisito provado."*
+
    ⚠️ **NÃO gravar logado como `apple@shvia.org`.** O fluxo apaga de verdade e no
    fim da gravação a conta que o revisor vai usar não existe mais. Gravar com uma
    conta descartável, criada só para isso.
