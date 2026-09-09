@@ -4,6 +4,28 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.27 - the character counter on the Notes field counts DOWN, and reading it as "used" invented a problem
+
+The 0.6.26 review recorded the Notes as *"3,387 characters, excerpt as read"* and
+raised an alarm: only 18% of the field had been seen, 2,774 characters were unread,
+and nothing should be pasted over them.
+
+**All of it was one misread number.** The counter under that field shows what is LEFT
+of 4,000, not what is used. The text was **613** characters — the whole of it — and
+3,387 was the room remaining. The finding it seemed to undermine (account deletion is
+absent from the Notes) was right all along.
+
+**What settled it was writing, not re-reading:** pasting a block of `aaaa…` moved the
+counter from `3,389` down to `2,659`. Adding characters lowered the number. Five
+seconds, and no amount of staring at the screen decides it, because the number carries
+no unit next to it. The replacement text later measured 1,408 characters and the field
+stopped at `2,592`, which closes the arithmetic from the other end.
+
+The alarm failed in the safe direction — the unsafe one was overwriting 2,774
+characters nobody had read — but the cheap test existed the whole time and was not run.
+Recorded next to the text it is about, because the next person to read that field will
+see the same unlabelled number.
+
 ## 0.6.26 - the App Store Notes lived only in a browser form, and two of their claims were wrong
 
 The **Notes** field of App Store Connect — the first thing a returning reviewer reads —

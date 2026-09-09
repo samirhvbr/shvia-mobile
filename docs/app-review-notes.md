@@ -12,7 +12,23 @@ code, hours before the resubmission of build 0.6.5.
 
 ---
 
-## The text in the field on 09/09/2026 (3,387 characters, excerpt as read)
+## The text in the field on 09/09/2026 (613 characters — the whole of it)
+
+> 🔴 **The counter under the Notes field counts DOWN, and reading it as "used"
+> produced a wrong finding here.** The field showed `3,387`; that was taken to
+> mean the text was 3,387 characters long and that only 18% of it had been read,
+> which turned into an alarm to stop and fetch the rest. It is the opposite: the
+> text is **613** characters and 3,387 was the room left of 4,000.
+>
+> **Settled by writing, not by re-reading.** Pasting a block of `aaaa…` moved the
+> counter from `3,389` **down** to `2,659` — adding characters lowered the number.
+> Five seconds, and no amount of staring at the screen would have decided it,
+> because the number carries no unit. The replacement text below later measured
+> 1,408 characters and the field stopped at `2,592`, which closes the arithmetic.
+>
+> The alarm cost one round trip and was the safe direction to fail in — the unsafe
+> one was pasting over 2,774 characters nobody had read. But the cheap test
+> existed the whole time and was not run.
 
 ```text
 ShvIA is a corporate AI workspace (B2B). Accounts are provisioned by each

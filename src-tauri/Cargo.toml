@@ -1,6 +1,6 @@
 [package]
 name = "shvia-mobile"
-version = "0.6.26"
+version = "0.6.27"
 description = "ShvIA Mobile — cliente iOS/Android do ShvIA (shell fino Tauri 2)"
 authors = ["Samir Hanna Verza <samirhv@me.com>"]
 edition = "2021"
