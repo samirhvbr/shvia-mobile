@@ -4,6 +4,19 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.24 - the release workflow was the one action left unpinned, and it made the ruler red
+
+`toda_action_do_ci_esta_pinada_por_sha`, added in 0.6.19, has been **failing in master
+since the day it was written**: `release.yml:44` carried `actions/checkout@v5`, a moving
+tag. The ruler was authored in the same delivery as `release.yml`'s sibling workflow and
+never run against the tree it landed in.
+
+Pinned to `fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5`, the format `ci.yml` already
+uses. This is the whole point of the ruler: a tag is a pointer its owner can move, and
+`release.yml` runs with `contents: write`.
+
+**Measured.** 7/7 green — the suite could not go green before this.
+
 ## 0.6.23 - the git hooks arrive from repodocs and are enabled here
 
 Both hooks of the standard now run here: `commit-msg`, which checks the shape of
