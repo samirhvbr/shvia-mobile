@@ -4,6 +4,27 @@ Entries follow the commit-message format (`version - comment`), newest first —
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
 
+## 0.6.28 - Face ID was exercised on the device, closing the submission's declared number-one risk
+
+**Samir, 09/09/2026:** the build installed over the cable on his iPhone opens with
+Face ID. Smoke-test item 10 had been open since July and was the risk this repository
+named first: without `NSFaceIDUsageDescription` iOS **terminates the process** on the
+first `evaluatePolicy` call — which in this app is the "Ativar Face ID" card of the
+first run, the first screen an Apple reviewer sees — and no build on real hardware had
+ever taken that path, because the 0.3.13 that went to TestFlight predates the 0.4.0
+that added biometrics.
+
+It holds for the binary under review: the key is in the `Info.plist` of **0.6.5**
+(`git show 3c68779:` shows all four), which already excluded the defect by
+construction; what was missing was the hardware test, and it exists now. The App Store
+Connect Notes promise this feature to Apple, so the claim now has a test behind it and
+not only code.
+
+⚠️ Recorded with its gap: *"the build I installed over the cable"* is not a version
+number. Any build ≥ 0.4.0 proves the path does not kill the app, which is what the item
+needed — but this file has just spent 36 days on a correct measurement nobody re-ran
+(§2.1, push), so the exact version goes in on the next pass.
+
 ## 0.6.27 - the character counter on the Notes field counts DOWN, and reading it as "used" invented a problem
 
 The 0.6.26 review recorded the Notes as *"3,387 characters, excerpt as read"* and

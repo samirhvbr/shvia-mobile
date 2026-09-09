@@ -250,9 +250,23 @@ incluindo o 1024) ✓ · Team ID, bundle, `minimumSystemVersion` e categoria ✓
       ```
 
 ### Validação no aparelho — o que nunca rodou em iOS
-- [ ] `[Mac]` **Smoke-test item 10 (biometria) PRIMEIRO** — Face ID é o caminho
-      que nenhum build em aparelho exercitou (o 0.3.13 que foi pro TestFlight é
-      **anterior** à 0.4.0) e é a primeira tela que o revisor vê.
+- [x] 🟢 **Smoke-test item 10 (biometria) — EXERCITADO. Samir, 09/09/2026:** o
+      build instalado por cabo no iPhone dele **abre com Face ID**. Fechou o item
+      que estava aberto desde julho e era o risco nº 1 declarado da submissão: sem
+      `NSFaceIDUsageDescription` o iOS **encerra o processo** na 1ª chamada de
+      `evaluatePolicy`, e nenhum build em aparelho tinha passado por ali (o 0.3.13
+      do TestFlight é **anterior** à 0.4.0, que trouxe a biometria).
+
+      Vale para o binário em review: a chave está no `Info.plist` do **0.6.5**
+      (`git show 3c68779:src-tauri/gen/apple/shvia-mobile_iOS/Info.plist` — as
+      quatro presentes), o que já excluía o defeito por construção; agora há
+      também o teste em hardware. As Notes do App Store Connect prometem esse
+      recurso à Apple, e é a primeira tela que o revisor vê.
+
+      ⚠️ **Registrar a versão exata do build de cabo na próxima passada aqui.**
+      Qualquer build ≥ 0.4.0 prova que o caminho não mata o app, e é o que basta —
+      mas "o build que instalei por cabo" não é um número, e este arquivo já
+      perdeu 36 dias por uma medição certa que ninguém refez (§2.1, push).
 - [ ] `[Mac]` Itens 4–7 (TTS, mic, anexos, links externos) no iPhone físico —
       mic e câmera reais, que o simulador fingia. Ver [smoke-test.md](smoke-test.md).
 
