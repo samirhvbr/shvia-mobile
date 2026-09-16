@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.6.33 - the second rejection, verbatim, and the rule that paid for itself on first use
+
+`docs/rejeicao-20260910.md` holds the App Review message of 10/09 word for word. The rule
+to do this was written in 0.6.30, one rejection ago, after the paraphrase of the *first*
+message had hardened into fact across four files. It paid immediately.
+
+**What the literal text settles before anything else: the two findings of 12/08 are
+gone.** Neither the dead microphone nor the unreachable account deletion is mentioned.
+They passed. The only new finding is 5.1.1(v) again, but a different clause — sign-up
+required a **phone number** and a **date of birth**, and neither is needed for the app to
+work.
+
+**The cause Apple did not name, and it is the one worth remembering.** The reviewer
+reached a **public sign-up form** — while the App Review Notes of that same submission
+said *"there is no public sign-up in the app"*. The claim was false, and it is what put
+the reviewer on that screen. `config/security.php` in SHVIA-WEB argues at length that the
+default for `REGISTRATION_OPEN` is closed *"so that the insecure state requires an
+explicit and traceable act"*, that closing removes no onboarding because admins create
+accounts through the API, and that anonymous sign-up was the premise of the c188 pentest
+findings. Production had it open.
+
+**Third submission in a row where the app and what we told Apple disagreed** — first the
+microphone, declared hidden while it worked; now sign-up, declared absent while it was
+open. Both statements were true when written. Neither was re-checked. That is the same
+sentence this repository has now written four times in eight days.
+
+**Fixed in production with no code**, because the plumbing was already right: the login
+screen hid the link behind `config('security.registration.open')` and the route was
+already gated on GET and POST, so `REGISTRATION_OPEN=false` plus `config:cache` removed
+the form. Verified from outside: `GET /register` **403**, no sign-up link on the login
+page, `/up` 200. The code change for the day sign-up reopens is
+[shvia-web#166](https://github.com/samirhvbr/shvia-web/pull/166).
+
+
 ## 0.6.32 - adopt the Portal product identity
 
 Replace the previous ShvIA mark with the approved Portal symbol. Refresh application icons and browser/splash assets from the canonical artwork in SHVIA-WEB `brand/atual`; the previous files are archived in `brand/versao1`. See `docs/brand.md` for scope and regeneration.
