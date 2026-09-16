@@ -65,3 +65,7 @@ navegador do SO. Tarja "Sistema Offline" injetada em cada página.
 Reusa a **infra da Blue3** (que já publica o app Flutter `BLUE3-INTRANET-MOBILE`):
 Apple Developer **Team ID `S65UBCTPN5`**, Google Play Console, custódia de keystore.
 Bundle ID **`cloud.blue3.shvia`** (mesmo do desktop). Detalhes e fases no roadmap.
+
+## Product identity
+
+See [Portal artwork and regeneration](docs/brand.md).

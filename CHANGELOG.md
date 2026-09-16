@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.32 - adopt the Portal product identity
+
+Replace the previous ShvIA mark with the approved Portal symbol. Refresh application icons and browser/splash assets from the canonical artwork in SHVIA-WEB `brand/atual`; the previous files are archived in `brand/versao1`. See `docs/brand.md` for scope and regeneration.
+
 Entries follow the commit-message format (`version - comment`), newest first — the same
 convention as the sibling repositories. This file did not exist until 0.6.16; earlier
 history lives in the git log.
