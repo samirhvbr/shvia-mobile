@@ -20,6 +20,7 @@
 // offline — pra estilizar o splash sem ser redirecionado (sem auto-retry).
 
 import { version } from "../package.json";
+import { invoke } from "@tauri-apps/api/core";
 import {
   authenticate,
   checkStatus,
@@ -147,17 +148,19 @@ function runLock(name: string): Promise<void> {
 // Resolve quando pode seguir pro ShvIA: destravado, OU biometria off/ausente no
 // aparelho. Com a trava ativa, nunca resolve sem auth — em falha re-prompta (fica
 // na tela), então proceedToShvia só navega no resolve.
-async function biometricGate(): Promise<void> {
+// Resolves to whether the lock is ACTIVE afterwards (on, and the device has
+// biometrics): the native side needs it to relock when the app comes back.
+async function biometricGate(): Promise<boolean> {
   const pref = localStorage.getItem(BIO_KEY);
-  if (pref === "off") return;
+  if (pref === "off") return false;
 
   let status: Status;
   try {
     status = await checkStatus();
   } catch {
-    return; // sem bridge nativo (dev no navegador/desktop) → não trava
+    return false; // sem bridge nativo (dev no navegador/desktop) → não trava
   }
-  if (!status.isAvailable) return; // aparelho sem biometria → não trava
+  if (!status.isAvailable) return false; // aparelho sem biometria → não trava
 
   const name =
     status.biometryType === BiometryType.FaceID
@@ -168,9 +171,22 @@ async function biometricGate(): Promise<void> {
 
   if (pref === null) {
     await runOptIn(name);
-    return;
+  } else {
+    await runLock(name); // pref === "on"
   }
-  await runLock(name); // pref === "on"
+  // "Agora não" and "Desativar bloqueio" both leave "off" behind.
+  return localStorage.getItem(BIO_KEY) === "on";
+}
+
+// Relock (answer of 24/09/2026: "na hora"). When the app comes back from the
+// background with the lock on, the native side sends the webview here with
+// `?relock=<path of the page it was on>` (src-tauri/src/lib.rs, `retravar`).
+// Only a path is accepted, never a host: the gate must not become a redirect.
+function destino(): string {
+  const volta = new URLSearchParams(window.location.search).get("relock");
+  const segura =
+    volta !== null && volta.startsWith("/") && !volta.startsWith("//") && !volta.includes("\\");
+  return segura ? SHVIA_URL + volta : SHVIA_URL;
 }
 
 let navigating = false;
@@ -179,8 +195,11 @@ let navigating = false;
 async function proceedToShvia(): Promise<void> {
   if (navigating) return;
   navigating = true;
-  await biometricGate();
-  window.location.replace(SHVIA_URL);
+  const travada = await biometricGate();
+  // Tell the native side, which relocks on the next return to the app only when
+  // this is true. No bridge (browser dev) = nothing to tell.
+  invoke("trava_biometrica", { ligada: travada }).catch(() => {});
+  window.location.replace(destino());
 }
 
 let autoRetryTimer: number | undefined;
