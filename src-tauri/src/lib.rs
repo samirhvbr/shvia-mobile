@@ -199,6 +199,34 @@ const SERVER_HOST: &str = "ai.shvia.org";
 /// no dia em que o DNS subiu, sem ninguém decidir nada.
 const SERVER_HOSTS: &[&str] = &[SERVER_HOST, "ia.shvia.org", "ia.blue3.com.br"];
 
+/// GitHub's sign-in and OAuth consent pages: the only part of github.com that stays inside
+/// the app (finding f169, the owner's answer on 24/09/2026: "it is on, fix it in the app").
+/// The web's "connect GitHub" goes to `github.com/login/oauth/authorize` and comes back to
+/// `ai.shvia.org/integracoes/github/callback`. Opened in the OS browser, like every external
+/// link, the callback landed where the app's session is not, and the user never came back to
+/// the app. Inside the webview, the whole round trip keeps the app's cookie jar.
+///
+/// By PATH, not by host: `/login` (sign-in and `/login/oauth/…`) and `/session`, `/sessions/…`
+/// (the sign-in form's POST and the two-factor steps). Everything else on github.com, a
+/// repository or the sign-up page, is still an external link. These pages get no IPC and no
+/// injected script (`recebe_script_da_casca`). A sign-in that leaves GitHub (SSO through
+/// another provider) opens outside and does not come back; password and 2FA do.
+fn e_login_do_github(url: &tauri::Url) -> bool {
+    if url.scheme() != "https" || url.host_str() != Some("github.com") {
+        return false;
+    }
+    let p = url.path();
+    p == "/login" || p.starts_with("/login/") || p == "/session" || p.starts_with("/sessions/")
+}
+
+/// Which pages get the shell's script (version, offline banner, picker mark, push token):
+/// the ShvIA server only. It used to be "every page that is not the local shell", which was
+/// the same thing while nothing else loaded inside the app. With GitHub's sign-in inside it,
+/// that rule would hand the push token to github.com.
+fn recebe_script_da_casca(url: &tauri::Url) -> bool {
+    url.scheme() == "https" && url.host_str().is_some_and(|h| SERVER_HOSTS.contains(&h))
+}
+
 /// Uma navegação fica **no app** se for a casca local (localhost/tauri) ou um
 /// host do servidor do ShvIA em https; qualquer outra origem é link externo e
 /// abre no navegador do SO.
@@ -268,7 +296,7 @@ pub fn run() {
             WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                 .title("ShvIA")
                 .on_navigation(move |url| {
-                    if is_internal(url) {
+                    if is_internal(url) || e_login_do_github(url) {
                         return true;
                     }
                     // link externo → navegador do SO, não dentro do app.
@@ -290,7 +318,7 @@ pub fn run() {
                             casca.set_query(None);
                             casca.set_fragment(None);
                             *webview.state::<CascaLocal>().0.lock().unwrap() = Some(casca);
-                        } else {
+                        } else if recebe_script_da_casca(payload.url()) {
                             let mut js = format!(
                                 "window.__shviaShellVersion={:?};{}{}",
                                 env!("CARGO_PKG_VERSION"),
@@ -396,7 +424,68 @@ pub fn run() {
 // Mesma família do achado F-20 (que mediu só o DESKTOP).
 #[cfg(test)]
 mod tests {
-    use super::{alvo_da_retrava, is_internal, retrava_js};
+    use super::{alvo_da_retrava, e_login_do_github, is_internal, recebe_script_da_casca, retrava_js};
+
+    /// GitHub's sign-in, consent and two-factor steps stay in the app, so the OAuth round
+    /// trip comes back with the app's session.
+    #[test]
+    fn o_login_do_github_fica_no_app() {
+        for u in [
+            "https://github.com/login",
+            "https://github.com/login?return_to=%2Flogin%2Foauth%2Fauthorize",
+            "https://github.com/login/oauth/authorize?client_id=x&state=y",
+            "https://github.com/session",
+            "https://github.com/sessions/two-factor",
+            "https://github.com/sessions/verified-device",
+        ] {
+            assert!(e_login_do_github(&url(u)), "{u} deveria ficar no app");
+        }
+    }
+
+    /// The rest of github.com, and anything that only looks like it, stays external.
+    #[test]
+    fn o_resto_do_github_continua_externo() {
+        for u in [
+            "https://github.com/samirhvbr/shvia-web",
+            "https://github.com/signup",
+            "https://github.com/login-evil",
+            "https://github.com/sessionsX",
+            "http://github.com/login",
+            "https://gist.github.com/login",
+            "https://github.com.evil.com/login",
+        ] {
+            assert!(!e_login_do_github(&url(u)), "{u} deveria abrir fora");
+        }
+    }
+
+    /// The shell's script (and the push token in it) goes to the ShvIA server only, never to
+    /// the GitHub pages that now load inside the app, and never to the local shell.
+    ///
+    /// The helper alone proves nothing if `on_page_load` stops calling it, and a closure
+    /// inside `run()` cannot be driven without a device. So this is a SOURCE check, declared
+    /// as one: the injection branch must be guarded by the helper.
+    ///
+    /// Only the code ABOVE this module counts: the file as a whole always contains the
+    /// strings below, in these very asserts, and a first version of this test passed with the
+    /// guard removed for exactly that reason.
+    #[test]
+    fn a_injecao_e_a_navegacao_passam_pelos_filtros() {
+        let codigo = include_str!("lib.rs")
+            .split("#[cfg(test)]")
+            .next()
+            .expect("o módulo de testes fica no fim do arquivo");
+        assert!(codigo.contains("} else if recebe_script_da_casca(payload.url()) {"));
+        assert!(codigo.contains("if is_internal(url) || e_login_do_github(url) {"));
+    }
+
+    #[test]
+    fn so_o_servidor_recebe_o_script_da_casca() {
+        assert!(recebe_script_da_casca(&url("https://ai.shvia.org/chat")));
+        assert!(recebe_script_da_casca(&url("https://ia.blue3.com.br/")));
+        assert!(!recebe_script_da_casca(&url("https://github.com/login/oauth/authorize")));
+        assert!(!recebe_script_da_casca(&url("http://ai.shvia.org/")));
+        assert!(!recebe_script_da_casca(&url("tauri://localhost/index.html")));
+    }
 
     fn url(u: &str) -> tauri::Url {
         u.parse().expect("url de teste válida")
