@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.36 - the missing TLS pinning becomes a written decision
+
+ADR-004 in `docs/decisoes.md`: no certificate pinning, and why. The absence was measured
+in the 21/09 sweep (finding `f172`) and nothing in the repository said whether it was a gap
+or a choice. The cost of pinning here is concrete: the server's Let's Encrypt certificate
+renews every 90 days, and a broken pin can only be fixed by a build that waits for Apple's
+review. The ADR also names what would reopen the question.
+
+Documentation only.
+
 ## 0.6.35 - the repository stops choosing the model
 
 `CLAUDE_CODE_SUBAGENT_MODEL` leaves `.claude/settings.json`. The model is now the user's

@@ -132,5 +132,42 @@ Formato ADR. Não relitigar direção já decidida dentro de um how-to — linka
   WebView. Verificação: `cargo test` + `npm run build` no host; o comportamento
   de link externo (item 7 do `docs/smoke-test.md`) só se valida no aparelho.
 
+## ADR-004 — No TLS pinning: the shell trusts the system store, on purpose
+
+- **Context:** the shell has no certificate pinning anywhere. What exists is the exact
+  host allowlist of ADR-003 (`SERVER_HOSTS` in `src-tauri/src/lib.rs`) plus the
+  operating system's trust store. Measured on 21/09/2026 by content, not by file name:
+  `pinn|serverTrust|didReceiveChallenge|network_security_config|TrustKit|publicKeyHash|NSPinnedDomains`
+  has no hit in `src/`, `src-tauri/src/`, `plugins/` or the platform projects. Until
+  now that absence had no reader: nothing said whether it was a gap or a choice.
+- **What pinning would buy:** a device with a planted root CA (a corporate MDM profile,
+  for example) can read and rewrite the shell's traffic, and that traffic carries the
+  same-origin session cookie, which **is** the user's credential. Pinning would close
+  that path.
+- **Why not — the cost is specific to this product:**
+  - **Rotation.** `ai.shvia.org` uses a Let's Encrypt certificate: 90 days
+    (measured 24/09: issued 12/09, expires 11/12, intermediate `YE2`), renewed
+    automatically, and Let's Encrypt rotates its intermediates too. A leaf or
+    intermediate pin breaks on a routine renewal.
+  - **The fix goes through store review.** A wrong pin is repaired only by a new build,
+    and the iOS build waits days for Apple's review (see ADR-003's ordering). Until it
+    ships, every installed copy is an app that cannot reach its server, and the user
+    cannot tell why.
+  - **A root pin shrinks the gain.** Pinning the ISRG roots would survive renewals, but
+    it also breaks the day the server changes CA. It defends only against an attacker
+    who can plant a CA on the device, and an MDM that can do that already manages the
+    device.
+  - **A WebView shell is not one switch.** The traffic is the WebView's, not a native
+    HTTP client's. Whether each platform's pin mechanism covers WebView traffic has not
+    been measured here. That measurement would be the first step of any revisit.
+- **Decision:** no pinning. The shell keeps the exact host allowlist and the system trust
+  store. Recommended in the 21/09/2026 sweep (finding `f172`) and accepted by the owner
+  on 23/09/2026.
+- **Revisit when:** the app starts carrying something beyond the session (tokens stored
+  on the device, a second backend), a threat model with hostile device management appears,
+  or the server moves to a CA and release process that can ship a pin update before a
+  rotation. A revisit starts by measuring WebView coverage per platform and pins roots
+  with a backup key, never the leaf.
+
 [BLUE3-MOBILE-SERVICOS-AO-VIVO.md]: ../../../BLUE3/BLUE3-INTRANET-MOBILE/docs/BLUE3-MOBILE-SERVICOS-AO-VIVO.md
 [NOTIFICACOES.md]: ../../../BLUE3/BLUE3-INTRANET-MOBILE/docs/NOTIFICACOES.md
