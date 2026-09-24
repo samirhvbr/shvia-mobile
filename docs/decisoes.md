@@ -49,6 +49,14 @@ Formato ADR. Não relitigar direção já decidida dentro de um how-to — linka
      biometria é **acesso LOCAL**; o cookie de sessão same-origin continua sendo o
      auth remoto. Toggle de ativar/desativar vive na casca (não há como ser no ShvIA
      web sem furar o posture).
+     **Relock on return (0.7.0, 24/09/2026, the owner's answer "right away"):** the
+     gate also runs when the app comes back from the background (`WindowEvent::Resumed`:
+     Android `onResume`, iOS `applicationWillEnterForeground`). The native side learns
+     whether the lock is on from the local shell, through the app's only command
+     (`trava_biometrica`), which the remote page still cannot reach. Only the page's
+     path travels to the gate and back, never a host. A file picker opened in the last
+     10 minutes spares one resume, because on Android coming back from the picker is
+     itself a resume.
   2. **Push (APNs)** — **o lado SERVIDOR saiu do bloqueio: está PRONTO** desde o
      **SHVIA-WEB 2.51.0 (16/07)**, no mesmo dia deste ADR — que por isso ficou
      desatualizado até 28/07. Já existem lá: `POST /push/token` e

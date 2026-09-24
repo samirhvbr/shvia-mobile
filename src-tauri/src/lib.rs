@@ -19,7 +19,6 @@ use std::sync::Mutex;
 use tauri::{webview::PageLoadEvent, Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_opener::OpenerExt;
 
-#[cfg(target_os = "ios")]
 use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(target_os = "ios")]
 use tauri_plugin_shvia_push::ShviaPushExt;
@@ -33,6 +32,92 @@ struct PushToken(Mutex<Option<String>>);
 /// load REMOTO (usuário logado = momento com contexto, não no splash).
 #[cfg(target_os = "ios")]
 struct PushPermissionAsked(AtomicBool);
+
+/// Face ID lock on or off, as the local shell last reported it (`trava_biometrica`). The
+/// preference lives in the local shell's `localStorage`, an origin this process cannot read,
+/// so the shell reports it on every start and after every change.
+struct TravaLigada(AtomicBool);
+
+/// Origin of the local shell, learned on its first page load. It differs per platform
+/// (`tauri://localhost` on iOS, `http://tauri.localhost` on Android), and the relock has to
+/// send the webview back there.
+struct CascaLocal(Mutex<Option<tauri::Url>>);
+
+/// Called by the local shell only. The remote page has no IPC at all: there is no `remote`
+/// capability, so this is not a command the ShvIA page can reach (ADR-001 still holds).
+#[tauri::command]
+fn trava_biometrica(ligada: bool, trava: tauri::State<'_, TravaLigada>) {
+    trava.0.store(ligada, Ordering::SeqCst);
+}
+
+/// Where the webview goes when the app comes back with the lock on: the local shell's gate,
+/// carrying the page to return to. Only the PATH and query travel, never a host, so the
+/// gate cannot become an open redirect. `None` when the current page is not the ShvIA
+/// server (the gate itself, the splash, anything else): nothing to lock.
+// Only the mobile `Resumed` handler calls these; on the host they are reached by tests.
+#[cfg_attr(not(mobile), allow(dead_code))]
+fn alvo_da_retrava(casca: &tauri::Url, atual: &tauri::Url) -> Option<String> {
+    let host = atual.host_str()?;
+    if atual.scheme() != "https" || !SERVER_HOSTS.contains(&host) {
+        return None;
+    }
+    let mut volta = atual.path().to_string();
+    if let Some(q) = atual.query() {
+        volta.push('?');
+        volta.push_str(q);
+    }
+    let mut alvo = casca.join("index.html").ok()?;
+    alvo.query_pairs_mut().clear().append_pair("relock", &volta);
+    Some(alvo.to_string())
+}
+
+/// The page decides whether to go, because only it knows one thing: a file picker that was
+/// just opened. Android runs the picker as another activity, so coming back from it is ALSO
+/// a resume, and relocking there would reload the page and throw the chosen file away. The
+/// mark lasts 10 minutes and is spent by the first resume, picker or not.
+// Only the mobile `Resumed` handler calls these; on the host they are reached by tests.
+#[cfg_attr(not(mobile), allow(dead_code))]
+fn retrava_js(alvo: &str) -> String {
+    format!(
+        "(function(){{var t=window.__shviaSeletorEm||0;window.__shviaSeletorEm=0;if(t&&Date.now()-t<600000)return;location.replace({alvo:?});}})();"
+    )
+}
+
+/// Injected with the offline banner: marks when a file input is opened, for `retrava_js`.
+/// A capture listener on `document` sees it because the ShvIA's file inputs live in the DOM
+/// (`hidden`) and are opened with `.click()`, which dispatches a real click (checked on
+/// 24/09/2026: `attach-input`, `project-files-input`, `cc-anexo-input`). An input opened
+/// while detached from the document would slip past; there is none today.
+const MARCA_SELETOR_JS: &str = r#"(function () {
+  if (window.__shviaSeletor) return;
+  window.__shviaSeletor = true;
+  document.addEventListener('click', function (e) {
+    var el = e.target;
+    if (el && el.matches && el.matches('input[type=file]')) window.__shviaSeletorEm = Date.now();
+  }, true);
+})();"#;
+
+/// Relock on return: runs on every resume of the main window, and does nothing unless the
+/// lock is on and the current page is the ShvIA server.
+// Only the mobile `Resumed` handler calls these; on the host they are reached by tests.
+#[cfg_attr(not(mobile), allow(dead_code))]
+fn retravar<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
+    if !app.state::<TravaLigada>().0.load(Ordering::SeqCst) {
+        return;
+    }
+    let Some(casca) = app.state::<CascaLocal>().0.lock().unwrap().clone() else {
+        return;
+    };
+    let Some(janela) = app.get_webview_window("main") else {
+        return;
+    };
+    let Ok(atual) = janela.url() else {
+        return;
+    };
+    if let Some(alvo) = alvo_da_retrava(&casca, &atual) {
+        let _ = janela.eval(retrava_js(&alvo));
+    }
+}
 
 /// JS que entrega o token à página remota. O front do ShvIA web
 /// (`registerPushToken` no app.js) escuta o evento e faz o POST /push/token
@@ -157,8 +242,25 @@ pub fn run() {
     }
 
     builder
+        .invoke_handler(tauri::generate_handler![trava_biometrica])
+        .on_window_event(|janela, evento| {
+            // Mobile only: `Resumed` is Android's `onResume` and iOS's
+            // `applicationWillEnterForeground` (the Face ID prompt itself does not fire it).
+            #[cfg(mobile)]
+            {
+                if let tauri::WindowEvent::Resumed = evento {
+                    retravar(janela.app_handle());
+                }
+            }
+            #[cfg(not(mobile))]
+            {
+                let _ = (janela, evento);
+            }
+        })
         .setup(|app| {
             app.manage(PushToken(Mutex::new(None)));
+            app.manage(TravaLigada(AtomicBool::new(false)));
+            app.manage(CascaLocal(Mutex::new(None)));
             #[cfg(target_os = "ios")]
             app.manage(PushPermissionAsked(AtomicBool::new(false)));
 
@@ -181,11 +283,19 @@ pub fn run() {
                 .on_page_load(|webview, payload| {
                     if let PageLoadEvent::Finished = payload.event() {
                         let host = payload.url().host_str().unwrap_or_default().to_owned();
-                        if host != "localhost" && host != "tauri.localhost" {
+                        if host == "localhost" || host == "tauri.localhost" {
+                            // Learn where the local shell lives, for the relock.
+                            let mut casca = payload.url().clone();
+                            casca.set_path("/");
+                            casca.set_query(None);
+                            casca.set_fragment(None);
+                            *webview.state::<CascaLocal>().0.lock().unwrap() = Some(casca);
+                        } else {
                             let mut js = format!(
-                                "window.__shviaShellVersion={:?};{}",
+                                "window.__shviaShellVersion={:?};{}{}",
                                 env!("CARGO_PKG_VERSION"),
-                                OFFLINE_BANNER_JS
+                                OFFLINE_BANNER_JS,
+                                MARCA_SELETOR_JS
                             );
                             // Token de push conhecido? Reinjetar a cada load —
                             // o front (registerPushToken) é idempotente.
@@ -286,7 +396,51 @@ pub fn run() {
 // Mesma família do achado F-20 (que mediu só o DESKTOP).
 #[cfg(test)]
 mod tests {
-    use super::is_internal;
+    use super::{alvo_da_retrava, is_internal, retrava_js};
+
+    fn url(u: &str) -> tauri::Url {
+        u.parse().expect("url de teste válida")
+    }
+
+    /// The relock sends the webview to the local gate on each platform, carrying only the
+    /// PATH and query of the page it was on. The fragment and the host stay behind.
+    #[test]
+    fn a_retrava_volta_so_pelo_caminho() {
+        for casca in ["tauri://localhost/", "http://tauri.localhost/"] {
+            let alvo = alvo_da_retrava(&url(casca), &url("https://ai.shvia.org/chat/42?modo=code#fim"))
+                .expect("a página do servidor retrava");
+            let alvo = url(&alvo);
+            assert_eq!(alvo.scheme(), url(casca).scheme());
+            assert_eq!(alvo.host_str(), url(casca).host_str());
+            assert_eq!(alvo.path(), "/index.html");
+            let pares: Vec<(String, String)> =
+                alvo.query_pairs().map(|(k, v)| (k.into_owned(), v.into_owned())).collect();
+            assert_eq!(pares, vec![("relock".to_string(), "/chat/42?modo=code".to_string())]);
+        }
+    }
+
+    /// Only a page of the ShvIA server relocks. The gate itself must not (it would loop),
+    /// and neither must anything that is not the server.
+    #[test]
+    fn so_a_pagina_do_servidor_retrava() {
+        let casca = url("tauri://localhost/");
+        assert!(alvo_da_retrava(&casca, &url("tauri://localhost/index.html?relock=%2F")).is_none());
+        assert!(alvo_da_retrava(&casca, &url("http://tauri.localhost/index.html")).is_none());
+        assert!(alvo_da_retrava(&casca, &url("http://ai.shvia.org/chat")).is_none());
+        assert!(alvo_da_retrava(&casca, &url("https://mem.shvia.org/")).is_none());
+        assert!(alvo_da_retrava(&casca, &url("https://ai.shvia.org.evil.com/")).is_none());
+        assert!(alvo_da_retrava(&casca, &url("https://ia.blue3.com.br/x")).is_some());
+    }
+
+    /// The injected JS spares a file picker opened in the last 10 minutes, spends the mark
+    /// either way, and carries the target as a string literal.
+    #[test]
+    fn o_js_da_retrava_poupa_o_seletor_e_leva_o_alvo_como_texto() {
+        let js = retrava_js("tauri://localhost/index.html?relock=%2Fchat");
+        assert!(js.contains("location.replace(\"tauri://localhost/index.html?relock=%2Fchat\")"));
+        assert!(js.contains("window.__shviaSeletorEm=0;"));
+        assert!(js.contains("<600000)return;"));
+    }
 
     fn internal(url: &str) -> bool {
         is_internal(&url.parse().expect("url de teste válida"))

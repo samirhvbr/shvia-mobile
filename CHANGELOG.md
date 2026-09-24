@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.7.0 - the app locks again the moment it comes back, not only at cold start
+
+Finding `f167`, the owner's answer on 24/09/2026: "right away". Until now the Face ID/Touch ID
+gate ran only at cold start. Anyone who picked up an unlocked phone with ShvIA in the
+background went straight into the conversation.
+
+- `WindowEvent::Resumed` (Android `onResume`, iOS `applicationWillEnterForeground`) sends the
+  webview back to the local gate when the lock is on and the current page is the ShvIA
+  server. After unlocking, the gate returns to the same page.
+- Only the page's path and query travel (`?relock=/chat/42`), never a host, on both sides:
+  Rust builds it from the current URL, and the shell accepts only `/…` that is not `//…`.
+- The preference lives in the local shell's `localStorage`, which the native side cannot
+  read, so the shell reports it through a new app command, `trava_biometrica`, on every start
+  and after every change. The remote page still has no IPC.
+- A file picker opened in the last 10 minutes spares one resume. Android runs the picker as
+  another activity, so coming back from it is itself a resume, and relocking there would
+  reload the page and lose the chosen file.
+
+Tests: `a_retrava_volta_so_pelo_caminho`, `so_a_pagina_do_servidor_retrava` and
+`o_js_da_retrava_poupa_o_seletor_e_leva_o_alvo_como_texto`. Reversals: accepting `http`, carrying
+the host, and not spending the picker mark each fail exactly one of them. Checked with
+`cargo clippy -D warnings` on the host and on `aarch64-linux-android`, because CI compiles only
+the host and the `Resumed` branch exists only on mobile. Not run on a device: Face ID needs a Mac
+and an iPhone.
+
 ## 0.6.37 - the permission lists follow repodocs: five commands move to ask, seven rules leave deny
 
 `rm -rf` and `curl`/`wget` piped into a shell leave `deny` and now ask for confirmation.
