@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.37 - the permission lists follow repodocs: five commands move to ask, seven rules leave deny
+
+`rm -rf` and `curl`/`wget` piped into a shell leave `deny` and now ask for confirmation.
+Reading `.env`/`.env.*`, `git push --force`/`-f`, `git reset --hard` and `git clean -fd`
+leave `deny`. Key reads (`*.pem`, `*.key`, `*.p8`, `*.p12`, `*.pfx`) stay blocked. The
+owner's decision on 24/09/2026, replicated from repodocs 1.17.0 (ADR-028).
+
 ## 0.6.36 - the missing TLS pinning becomes a written decision
 
 ADR-004 in `docs/decisoes.md`: no certificate pinning, and why. The absence was measured
