@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.7.3 - The ShvIA page can save a file on the phone, and that is the only native command it reaches
+
+Owner decision `mobile-download-caminho` (24/09/2026): *"minimal saveFile bridge on both
+platforms, new ADR"*. Downloads did nothing on Android: wry has no download handler there, and
+the page's save helper falls back to a `blob:` link, which cannot leave the page. This reopens
+ADR-001 on one point, written as **ADR-005** in `docs/decisoes.md`.
+
+- **`salvar_arquivo`**: bytes and a name in, never a path. The name is cleaned (last segment,
+  no reserved characters, never empty), and anything over 50 MB is refused before decoding.
+- **The system decides where.** The official `tauri-plugin-dialog` opens "save as"
+  (`ACTION_CREATE_DOCUMENT` on Android, the document picker's export on iOS), and the official
+  `tauri-plugin-fs` writes Android's `content://` URI. Both are called from Rust only. No
+  capability grants a `dialog:` or `fs:` permission, so no page reaches either one directly.
+  On iOS the plugin exports a file that already exists in Documents under that name, so the
+  bytes are staged there and removed after.
+- **The fence is the ACL.** `build.rs` puts the app commands under an `AppManifest`. The new
+  `servidor-shvia` capability is the only one with `remote` URLs (the three `SERVER_HOSTS`)
+  and grants `allow-salvar-arquivo` and nothing else. `trava_biometrica` stays local-only
+  (`allow-trava-biometrica` in `default`).
+- **The page calls it the way it calls the desktop:** the shell's script, which reaches the
+  ShvIA hosts only, defines `window.__shviaCode.saveFile`, and `app.js` already asks
+  `Ponte.tem('saveFile')`. ⚠️ **Order:** shvia-web #360 (the web starts Code mode only for a
+  bridge with `spawn` and `send`) has to be in production before this build reaches users.
+
+Tests (4 new, 19 in total): the name is only a name, the ceiling refuses before decoding, the JS
+keys match the command's parameters (`dadosBase64` ↔ `dados_base64`), and a read of the
+capability files the build uses: one remote capability, the `SERVER_HOSTS`, one permission, no
+`dialog:`/`fs:` anywhere. Reversals, each red: grant `dialog:default`; drop a host; rename the
+JS key (the first attempt edited the test's own string too and stayed green, so it was redone);
+stop cutting the path from the name. `clippy -D warnings` is clean on the host and on
+`aarch64-linux-android`. The debug APK builds (`tauri android build`). **Not run on a device,
+and iOS does not compile here.**
+
 ## 0.7.2 - The Android build compiles again: two theme comments carried a double dash
 
 Found while building an APK for the download bridge (panel `mobile-download-caminho`). The build

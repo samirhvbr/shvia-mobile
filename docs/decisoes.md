@@ -177,5 +177,51 @@ Formato ADR. Não relitigar direção já decidida dentro de um how-to — linka
   rotation. A revisit starts by measuring WebView coverage per platform and pins roots
   with a backup key, never the leaf.
 
+---
+
+## ADR-005 — One native command reaches the ShvIA page: save a file
+
+- **Date:** 25/09/2026 · **Status:** Accepted (owner decision `mobile-download-caminho`,
+  24/09/2026: *"minimal saveFile bridge on both platforms, new ADR"*).
+- **Context:** the page could not download on Android. wry has no download handler there,
+  and the page's save helper (`saveArtifact` in shvia-web `app.js`) falls back to a `blob:`
+  link, which cannot leave the page. iOS's WebKit downloads by itself. ADR-001's posture was that
+  **no** native command reaches the remote page, and the only way out for a `blob:` is a
+  bridge the page can call. So this reopens ADR-001 on one point.
+- **Decision:** exactly one command, `salvar_arquivo`, reachable by the ShvIA page on its
+  three hosts and by nothing else:
+  - **Bytes and a name in, never a path.** The page holds the authenticated session and reads
+    the bytes; the shell cleans the name (last segment only, no reserved characters, never
+    empty) and refuses anything over 50 MB before decoding it.
+  - **The system decides where.** The official `tauri-plugin-dialog` opens "save as"
+    (`ACTION_CREATE_DOCUMENT` on Android, the document picker's export on iOS), and the
+    official `tauri-plugin-fs` writes Android's `content://` URI. Both are called from Rust
+    only. No capability grants a `dialog:` or `fs:` permission, so no page can reach either
+    plugin directly.
+  - **The fence is the ACL, not a convention.** `build.rs` puts the app commands under the ACL
+    (`AppManifest`). The `servidor-shvia` capability is the only one with `remote` URLs: the
+    `SERVER_HOSTS`, and `allow-salvar-arquivo` and nothing else. `trava_biometrica` stays
+    local-only (`default`). A test reads the capability files the build uses and fails if any
+    of this drifts.
+  - **The page calls it the way it already calls the desktop:** `window.__shviaCode.saveFile`,
+    which `app.js` checks with `Ponte.tem('saveFile')`. The shell's injected script, which
+    reaches the ShvIA hosts only, defines that one method. **Order that matters:** the web
+    starts its desktop Code mode only for a bridge with `spawn` and `send` (shvia-web #360).
+    That has to be in production before this ships, because the object's mere presence used
+    to boot Code mode and throw at load.
+- **Consequences:** the phone saves where the person chooses, on both platforms, with the
+  same web code as the desktop. iOS keeps a staged copy in the app's Documents only for the
+  length of the dialog (the plugin exports a file that already exists there; ours is removed
+  after).
+- **Alternatives set aside:**
+  - *A share sheet.* It needs native code of our own on both platforms (FileProvider + intent;
+    `UIActivityViewController`). The official dialog covers "put this file somewhere" without
+    any.
+  - *Writing to app-specific storage.* On Android 11+ the Files app cannot reach
+    `Android/data`, so the file would exist and nobody could find it.
+  - *A generic file bridge* (paths, reads). That is exactly the surface ADR-001 kept closed.
+- **Revisit when:** a second native command is proposed for the page, or the page needs to
+  READ a file (that is a different fence and a different ADR).
+
 [BLUE3-MOBILE-SERVICOS-AO-VIVO.md]: ../../../BLUE3/BLUE3-INTRANET-MOBILE/docs/BLUE3-MOBILE-SERVICOS-AO-VIVO.md
 [NOTIFICACOES.md]: ../../../BLUE3/BLUE3-INTRANET-MOBILE/docs/NOTIFICACOES.md

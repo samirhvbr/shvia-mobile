@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-trava-biometrica"
+description = "Enables the trava_biometrica command without any pre-configured scope."
+commands.allow = ["trava_biometrica"]
+
+[[permission]]
+identifier = "deny-trava-biometrica"
+description = "Denies the trava_biometrica command without any pre-configured scope."
+commands.deny = ["trava_biometrica"]

@@ -1,6 +1,6 @@
 [package]
 name = "shvia-mobile"
-version = "0.7.2"
+version = "0.7.3"
 description = "ShvIA Mobile — cliente iOS/Android do ShvIA (shell fino Tauri 2)"
 authors = ["Samir Hanna Verza <samirhv@me.com>"]
 edition = "2021"
@@ -20,6 +20,14 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 # Abre links externos (fora dos hosts de SERVER_HOSTS em src/lib.rs) no navegador do SO. Suporta mobile.
 tauri-plugin-opener = "2"
+# The page's download (ADR-005): the system "save as" dialog, and a writer that opens Android's
+# `content://` URIs. Official plugins, called from Rust only: no capability grants their
+# permissions to a page.
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+# Decodes the bytes the page sends to `salvar_arquivo`. Already in the lock through tauri.
+base64 = "0.22"
+serde = { version = "1", features = ["derive"] }
 
 # Pin de compatibilidade (não usamos `time` diretamente): o WebView (wry → cookie
 # 0.18.1) chama a API antiga de `Parsable::parse`. Fixamos `time` numa versão
@@ -36,4 +44,8 @@ tauri-plugin-biometric = "2"
 
 [target.'cfg(target_os = "ios")'.dependencies]
 tauri-plugin-shvia-push = { path = "../plugins/tauri-plugin-shvia-push" }
+serde_json = "1"
+
+# The capability fence test reads the JSON capability files (ADR-005).
+[dev-dependencies]
 serde_json = "1"

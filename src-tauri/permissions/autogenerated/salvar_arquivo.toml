@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-salvar-arquivo"
+description = "Enables the salvar_arquivo command without any pre-configured scope."
+commands.allow = ["salvar_arquivo"]
+
+[[permission]]
+identifier = "deny-salvar-arquivo"
+description = "Denies the salvar_arquivo command without any pre-configured scope."
+commands.deny = ["salvar_arquivo"]
