@@ -1,0 +1,22 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "servidor-shvia",
+  "description": "The ShvIA page's download (ADR-005): salvar_arquivo, and nothing else, on the three ShvIA hosts (SERVER_HOSTS in src/lib.rs, same order). The only capability with remote URLs.",
+  "platforms": [
+    "iOS",
+    "android"
+  ],
+  "windows": [
+    "main"
+  ],
+  "remote": {
+    "urls": [
+      "https://ai.shvia.org/*",
+      "https://ia.shvia.org/*",
+      "https://ia.blue3.com.br/*"
+    ]
+  },
+  "permissions": [
+    "allow-salvar-arquivo"
+  ]
+}

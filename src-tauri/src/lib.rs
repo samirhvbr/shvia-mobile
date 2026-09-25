@@ -5,9 +5,10 @@
 //! ShvIA hospedado (`https://ai.shvia.org`). A partir daí a UI é o próprio
 //! Blade do ShvIA — "mesmas funções" (espelha a postura do SHVIA-DESKTOP).
 //!
-//! Postura de menor privilégio: **nenhum comando nativo é exposto à página
-//! remota** — o servidor é a fonte da verdade; o cliente não abre banco nem
-//! guarda segredo.
+//! Postura de menor privilégio: o servidor é a fonte da verdade; o cliente não
+//! abre banco nem guarda segredo. **One native command reaches the remote page**, and
+//! only on the ShvIA hosts: `salvar_arquivo`, the page's download (ADR-005). It takes
+//! bytes and a name, never a path, and the system dialog decides where they go.
 //!
 //! **Mobile-only:** sem menu / multi-janela / geometria de janela (isso é
 //! desktop). A leitura em voz (TTS) usa o `speechSynthesis` nativo do WebView
@@ -43,8 +44,9 @@ struct TravaLigada(AtomicBool);
 /// send the webview back there.
 struct CascaLocal(Mutex<Option<tauri::Url>>);
 
-/// Called by the local shell only. The remote page has no IPC at all: there is no `remote`
-/// capability, so this is not a command the ShvIA page can reach (ADR-001 still holds).
+/// Called by the local shell only. The `default` capability (local pages) allows it; the
+/// `servidor-shvia` capability, the only one with `remote` URLs, allows `salvar_arquivo`
+/// and nothing else, so the ShvIA page cannot reach this (ADR-005).
 #[tauri::command]
 fn trava_biometrica(ligada: bool, trava: tauri::State<'_, TravaLigada>) {
     trava.0.store(ligada, Ordering::SeqCst);
@@ -129,6 +131,135 @@ fn push_token_js(token: &str) -> Option<String> {
     Some(format!(
         "window.__shviaPushPlatform='ios';window.__shviaPushToken='{token}';window.dispatchEvent(new Event('shvia:push-token'));"
     ))
+}
+
+/// The page's `saveFile` (ADR-005). The ShvIA web already asks `Ponte.tem('saveFile')` before
+/// a download and sends `{name, dataBase64}`: the page holds the authenticated session and reads
+/// the bytes; the shell only writes them where the person chooses. Without it, a download on
+/// Android went nowhere (wry has no download handler, and a `blob:` link cannot leave the page).
+///
+/// Only `saveFile` goes into `window.__shviaCode`. The web starts its desktop Code mode only for
+/// a bridge that has `spawn` and `send` (shvia-web `CodePonteSoComMetodoTest`); before that
+/// change, the object's mere presence would have booted Code mode on the phone.
+const PONTE_SALVAR_JS: &str = r#"(function () {
+  var p = (window.__shviaCode = window.__shviaCode || {});
+  if (typeof p.saveFile === 'function') return;
+  p.saveFile = function (a) {
+    a = a || {};
+    return window.__TAURI_INTERNALS__.invoke('salvar_arquivo', {
+      nome: String(a.name || ''),
+      dadosBase64: String(a.dataBase64 || '')
+    });
+  };
+})();"#;
+
+/// Ceiling for one saved file. The bytes cross the IPC as base64 inside a string, so a file
+/// several times this size would be several times that in memory, twice (JS and Rust).
+const TETO_BYTES: usize = 50 * 1024 * 1024;
+
+/// What the page reads back: `saved` false is a cancelled dialog, not an error.
+#[derive(serde::Serialize)]
+struct Salvo {
+    saved: bool,
+    path: Option<String>,
+}
+
+/// The name the dialog suggests: the last path segment only, without characters no file
+/// system accepts, and never empty. The page supplies it, so it is not trusted to be a name.
+fn nome_seguro(nome: &str) -> String {
+    let base = nome.rsplit(['/', '\\']).next().unwrap_or_default();
+    let limpo: String = base
+        .chars()
+        .filter(|c| !c.is_control() && !matches!(c, '<' | '>' | ':' | '"' | '|' | '?' | '*'))
+        .collect();
+    let limpo = limpo.trim().trim_start_matches('.').trim();
+    if limpo.is_empty() {
+        return "arquivo".to_string();
+    }
+    limpo.chars().take(120).collect()
+}
+
+/// The page's base64, decoded, refused past `TETO_BYTES` before decoding a byte of it.
+fn decodificar(b64: &str) -> Result<Vec<u8>, String> {
+    decodificar_ate(b64, TETO_BYTES)
+}
+
+fn decodificar_ate(b64: &str, teto: usize) -> Result<Vec<u8>, String> {
+    use base64::Engine as _;
+    let b64 = b64.trim();
+    if b64.len() > teto / 3 * 4 + 4 {
+        return Err(format!("arquivo maior que {} MB", teto / (1024 * 1024)));
+    }
+    base64::engine::general_purpose::STANDARD
+        .decode(b64)
+        .map_err(|_| "conteúdo do arquivo ilegível".to_string())
+}
+
+/// Reached by the ShvIA page only (capability `servidor-shvia`). The dialog blocks, so it runs
+/// off the main thread.
+#[tauri::command]
+async fn salvar_arquivo<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    nome: String,
+    dados_base64: String,
+) -> Result<Salvo, String> {
+    let nome = nome_seguro(&nome);
+    let bytes = decodificar(&dados_base64)?;
+    tauri::async_runtime::spawn_blocking(move || gravar_onde_escolher(&app, &nome, &bytes))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// The system "save as" (`tauri-plugin-dialog`), then the bytes, written from Rust.
+///
+/// - **Android:** `ACTION_CREATE_DOCUMENT` returns a `content://` URI, and `tauri-plugin-fs`
+///   opens it for writing.
+/// - **iOS:** the plugin's save dialog EXPORTS a file that already exists in the app's
+///   Documents under the suggested name (it creates an empty one otherwise). So the bytes are
+///   written there first, exported, and the staged copy removed.
+fn gravar_onde_escolher<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    nome: &str,
+    bytes: &[u8],
+) -> Result<Salvo, String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    #[cfg(target_os = "ios")]
+    {
+        let preparado = app
+            .path()
+            .document_dir()
+            .map_err(|e| e.to_string())?
+            .join(nome);
+        std::fs::write(&preparado, bytes).map_err(|e| e.to_string())?;
+        let escolhido = app.dialog().file().set_file_name(nome).blocking_save_file();
+        let _ = std::fs::remove_file(&preparado);
+        Ok(Salvo {
+            saved: escolhido.is_some(),
+            path: escolhido.map(|_| nome.to_string()),
+        })
+    }
+
+    #[cfg(not(target_os = "ios"))]
+    {
+        use std::io::Write;
+        use tauri_plugin_fs::FsExt;
+
+        let Some(destino) = app.dialog().file().set_file_name(nome).blocking_save_file() else {
+            return Ok(Salvo {
+                saved: false,
+                path: None,
+            });
+        };
+        let mut opcoes = tauri_plugin_fs::OpenOptions::new();
+        opcoes.write(true).create(true).truncate(true);
+        let mut arquivo = app.fs().open(destino, opcoes).map_err(|e| e.to_string())?;
+        arquivo.write_all(bytes).map_err(|e| e.to_string())?;
+        Ok(Salvo {
+            saved: true,
+            path: Some(nome.to_string()),
+        })
+    }
 }
 
 /// Injetado em cada página carregada (`on_page_load`): uma **tarja "Sistema
@@ -249,7 +380,12 @@ fn is_internal(url: &tauri::Url) -> bool {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[allow(unused_mut)] // no host o bloco `#[cfg(mobile)]` some → `mut` não usado
-    let mut builder = tauri::Builder::default().plugin(tauri_plugin_opener::init());
+    let mut builder = tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        // The page's download (ADR-005). Called from Rust only: no capability grants a
+        // `dialog:` or `fs:` permission, so no page reaches either plugin directly.
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init());
 
     // Biometria (M3/ADR-002): plugin **mobile-only** — o crate é `#![cfg(mobile)]`
     // e nem existe no host (por isso o registro fica atrás de `#[cfg(mobile)]`).
@@ -270,7 +406,7 @@ pub fn run() {
     }
 
     builder
-        .invoke_handler(tauri::generate_handler![trava_biometrica])
+        .invoke_handler(tauri::generate_handler![trava_biometrica, salvar_arquivo])
         .on_window_event(|janela, evento| {
             // Mobile only: `Resumed` is Android's `onResume` and iOS's
             // `applicationWillEnterForeground` (the Face ID prompt itself does not fire it).
@@ -320,10 +456,11 @@ pub fn run() {
                             *webview.state::<CascaLocal>().0.lock().unwrap() = Some(casca);
                         } else if recebe_script_da_casca(payload.url()) {
                             let mut js = format!(
-                                "window.__shviaShellVersion={:?};{}{}",
+                                "window.__shviaShellVersion={:?};{}{}{}",
                                 env!("CARGO_PKG_VERSION"),
                                 OFFLINE_BANNER_JS,
-                                MARCA_SELETOR_JS
+                                MARCA_SELETOR_JS,
+                                PONTE_SALVAR_JS
                             );
                             // Token de push conhecido? Reinjetar a cada load —
                             // o front (registerPushToken) é idempotente.
@@ -424,7 +561,88 @@ pub fn run() {
 // Mesma família do achado F-20 (que mediu só o DESKTOP).
 #[cfg(test)]
 mod tests {
-    use super::{alvo_da_retrava, e_login_do_github, is_internal, recebe_script_da_casca, retrava_js};
+    use super::{
+        alvo_da_retrava, decodificar_ate, e_login_do_github, is_internal, nome_seguro,
+        recebe_script_da_casca, retrava_js, PONTE_SALVAR_JS, SERVER_HOSTS,
+    };
+
+    /// The page supplies the name, so it is cleaned, never trusted as a path.
+    #[test]
+    fn o_nome_do_arquivo_e_so_um_nome() {
+        assert_eq!(nome_seguro("relatorio.pdf"), "relatorio.pdf");
+        assert_eq!(nome_seguro("../../etc/passwd"), "passwd");
+        assert_eq!(nome_seguro("C:\\Users\\x\\notas.md"), "notas.md");
+        assert_eq!(nome_seguro("a<b>:c|d?e*.txt"), "abcde.txt");
+        assert_eq!(nome_seguro(".oculto"), "oculto");
+        assert_eq!(nome_seguro(""), "arquivo");
+        assert_eq!(nome_seguro("/"), "arquivo");
+        assert_eq!(nome_seguro("..."), "arquivo");
+        assert_eq!(nome_seguro(&"x".repeat(300)).chars().count(), 120);
+    }
+
+    #[test]
+    fn o_conteudo_chega_decodificado_e_o_teto_recusa_antes() {
+        assert_eq!(decodificar_ate("b2k=", 1024).unwrap(), b"oi");
+        assert!(decodificar_ate("não é base64", 1024).is_err());
+        // 16 bytes of base64 is 12 bytes of file: past a 6-byte ceiling, refused unread.
+        let erro = decodificar_ate("AAAAAAAAAAAAAAAA", 6).unwrap_err();
+        assert!(erro.contains("maior que"), "{erro}");
+    }
+
+    /// The JS the page calls and the command's parameters are two spellings of one contract:
+    /// Tauri exposes `dados_base64` as `dadosBase64`. A rename on one side alone would make
+    /// every download fail with a missing-argument error that nothing here would see.
+    #[test]
+    fn a_ponte_js_e_o_comando_falam_os_mesmos_nomes() {
+        assert!(PONTE_SALVAR_JS.contains("invoke('salvar_arquivo'"));
+        assert!(PONTE_SALVAR_JS.contains("nome: String(a.name"));
+        assert!(PONTE_SALVAR_JS.contains("dadosBase64: String(a.dataBase64"));
+        let codigo = include_str!("lib.rs")
+            .split("#[cfg(test)]")
+            .next()
+            .expect("o módulo de testes fica no fim do arquivo");
+        assert!(codigo.contains("async fn salvar_arquivo<R: tauri::Runtime>("));
+        assert!(codigo.contains("    nome: String,\n    dados_base64: String,"));
+        // And it reaches the page through the injection that only the ShvIA hosts get.
+        assert!(codigo.contains("MARCA_SELETOR_JS,\n                                PONTE_SALVAR_JS"));
+    }
+
+    /// ADR-005's fence, read from the capability files the build uses: exactly one capability
+    /// has remote URLs, they are the ShvIA hosts, and it grants `salvar_arquivo` and nothing
+    /// else. No capability grants a `dialog:` or `fs:` permission to any page.
+    #[test]
+    fn so_o_servidor_alcanca_o_salvar_e_nada_mais() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("capabilities");
+        let mut remotas = Vec::new();
+        for entrada in std::fs::read_dir(&dir).expect("capabilities/") {
+            let caminho = entrada.expect("entrada").path();
+            let texto = std::fs::read_to_string(&caminho).expect("capability legível");
+            let cap: serde_json::Value = serde_json::from_str(&texto).expect("capability em JSON");
+            for p in cap["permissions"].as_array().expect("permissions") {
+                let p = p.as_str().unwrap_or_default();
+                assert!(
+                    !p.starts_with("dialog:") && !p.starts_with("fs:"),
+                    "{} grants {p} to a page",
+                    caminho.display()
+                );
+            }
+            if cap.get("remote").is_some() {
+                remotas.push(cap);
+            }
+        }
+        assert_eq!(remotas.len(), 1, "only one capability may reach remote pages");
+        let cap = &remotas[0];
+        assert_eq!(cap["identifier"], "servidor-shvia");
+        let urls: Vec<&str> = cap["remote"]["urls"]
+            .as_array()
+            .expect("urls")
+            .iter()
+            .map(|u| u.as_str().unwrap_or_default())
+            .collect();
+        let esperadas: Vec<String> = SERVER_HOSTS.iter().map(|h| format!("https://{h}/*")).collect();
+        assert_eq!(urls, esperadas, "the remote URLs drifted from SERVER_HOSTS");
+        assert_eq!(cap["permissions"], serde_json::json!(["allow-salvar-arquivo"]));
+    }
 
     /// GitHub's sign-in, consent and two-factor steps stay in the app, so the OAuth round
     /// trip comes back with the app's session.
