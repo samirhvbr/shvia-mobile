@@ -684,6 +684,36 @@ mod tests {
     /// A régua não julga se a doc está atualizada — julga se dá para CHEGAR nela. Um `.md`
     /// novo em `docs/` deixa o `cargo test` vermelho até alguém decidir onde ele entra no
     /// índice, que é a decisão que ninguém toma quando o arquivo simplesmente aparece.
+    /// The Android resources compile. aapt2 refuses the whole resource set when an XML comment
+    /// holds a double dash, and the theme comments did ("mesmo --bg") from 0.2.2 to 0.7.1: the
+    /// APK build failed at `mergeDebugResources`, and nothing noticed because CI does not build
+    /// Android. This reads the resource files instead of waiting for a Gradle run.
+    #[test]
+    fn nenhum_comentario_xml_do_android_tem_traco_duplo() {
+        fn anda(d: &std::path::Path, lidos: &mut usize, achados: &mut Vec<String>) {
+            for e in std::fs::read_dir(d).expect("pasta de recursos").flatten() {
+                let p = e.path();
+                if p.is_dir() {
+                    anda(&p, lidos, achados);
+                } else if p.extension().is_some_and(|x| x == "xml") {
+                    *lidos += 1;
+                    let texto = std::fs::read_to_string(&p).expect("xml legível");
+                    for trecho in texto.split("<!--").skip(1) {
+                        let comentario = trecho.split("-->").next().unwrap_or_default();
+                        if comentario.contains("--") {
+                            achados.push(p.display().to_string());
+                        }
+                    }
+                }
+            }
+        }
+        let raiz = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("gen/android/app/src/main/res");
+        let (mut lidos, mut achados) = (0, Vec::new());
+        anda(&raiz, &mut lidos, &mut achados);
+        assert!(lidos > 0, "no XML read under {}: the check measured nothing", raiz.display());
+        assert!(achados.is_empty(), "XML comments with a double dash (aapt2 refuses them): {achados:?}");
+    }
+
     #[test]
     fn todo_doc_e_alcancavel() {
         let raiz = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
