@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.7.1 - GitHub sign-in stays inside the app, so connecting GitHub comes back to it
+
+Finding `f169`, the owner's answer on 24/09/2026: "it is on, fix it in the app". The web's
+"connect GitHub" goes to `github.com/login/oauth/authorize` and returns to
+`ai.shvia.org/integracoes/github/callback`. The app treated github.com as an external link and
+opened it in the OS browser, so the callback landed where the app's session is not and the
+user never came back.
+
+- GitHub's sign-in and consent pages now load inside the webview, by path: `/login`,
+  `/login/…`, `/session`, `/sessions/…` (the two-factor steps). The rest of github.com, and
+  anything that only looks like it (`/login-evil`, `gist.github.com`, `github.com.evil.com`),
+  still opens outside.
+- The shell's script (version, offline banner, picker mark, **push token**) used to go to every
+  page that was not the local shell. That was the same as "the ShvIA server" while nothing
+  else loaded in the app. It is now explicitly the ShvIA server only, so GitHub's pages get
+  nothing.
+- A sign-in that leaves GitHub (SSO through another provider) still opens outside and does not
+  return. Password and 2FA do.
+
+Tests: `o_login_do_github_fica_no_app`, `o_resto_do_github_continua_externo`,
+`so_o_servidor_recebe_o_script_da_casca` and a declared source check,
+`a_injecao_e_a_navegacao_passam_pelos_filtros`. Reversals: allowing all of github.com,
+injecting into every page, and dropping the rule from `on_navigation` each fail. ⚠️ The first
+version of the source check read the whole file, where the assert's own string always appears,
+so it passed with the guard removed. It now reads only the code above the test module.
+`cargo clippy -D warnings` on the host and on `aarch64-linux-android`. Not run on a device.
+
 ## 0.7.0 - the app locks again the moment it comes back, not only at cold start
 
 Finding `f167`, the owner's answer on 24/09/2026: "right away". Until now the Face ID/Touch ID
