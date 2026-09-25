@@ -1,8 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.shvia_mobile" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Fundo escuro do app (mesmo --bg do ShvIA web, #0B0F17): mata o
-             flash branco entre abrir o app e o WebView pintar o splash. -->
+        <!-- Dark app background (the ShvIA web's bg color, #0B0F17): it removes
+             the white flash between opening the app and the WebView painting the
+             splash. No double dash in here: XML forbids it inside a comment, and
+             aapt2 refuses the whole resource set over it. -->
         <item name="android:windowBackground">#FF0B0F17</item>
     </style>
 </resources>

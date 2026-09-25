@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.7.2 - The Android build compiles again: two theme comments carried a double dash
+
+Found while building an APK for the download bridge (panel `mobile-download-caminho`). The build
+of `master` failed at `mergeDebugResources`: *"The string "--" is not permitted within
+comments"*. The two `themes.xml` (day and night) have carried the comment `mesmo --bg do ShvIA
+web` since 0.2.2, and XML forbids a double dash inside a comment, so aapt2 refused the whole
+resource set. Nothing noticed, because CI builds no Android.
+
+- Both comments rewritten in English, without the double dash, and saying why.
+- `nenhum_comentario_xml_do_android_tem_traco_duplo` reads every XML under the Android
+  resources and fails on a comment holding `--`. It also fails if it read no file at all.
+  Reversal: master's `values/themes.xml` turns it red.
+- `npx tauri android build --debug --apk --target aarch64` now finishes (it failed before on
+  this exact error). Not run on a device.
+
 ## 0.7.1 - GitHub sign-in stays inside the app, so connecting GitHub comes back to it
 
 Finding `f169`, the owner's answer on 24/09/2026: "it is on, fix it in the app". The web's
