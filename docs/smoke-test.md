@@ -49,6 +49,18 @@ npm run tauri android dev        # escolhe device/emulador e roda
 > No Linux da Blue3 o toolchain já existe (`~/Android/jdk-17`, `~/Android/Sdk`,
 > NDK 28.2) — o ambiente está em `docs/build.md`/histórico do repo.
 
+**O que conferir no aparelho (0.7.4, ainda não rodou em aparelho nenhum):**
+
+| # | O quê | Resultado esperado |
+|---|---|---|
+| A1 | Toque no microfone do chat (ditado) | O Android pergunta "Permitir que o ShvIA grave áudio?"; permitido, grava e transcreve. Antes da 0.7.4 não perguntava e nada acontecia |
+| A2 | Anexar foto, escolhendo a câmera | O Android pergunta pela câmera; permitido, abre e anexa |
+| A3 | Negar a permissão | O app continua abrindo e o resto funciona; só aquele recurso fica sem |
+| A4 | Aparelho sem câmera ou sem microfone (emulador sem os dois) | O app **instala**: as duas `uses-feature` são `required="false"` |
+
+O CI (`.github/workflows/android.yml`) compila o APK de depuração e confere as permissões dentro dele,
+mas só quando o app muda; ele não substitui estes quatro passos, que precisam de um aparelho.
+
 ---
 
 ## iOS (só macOS) — este passo É o começo do M2

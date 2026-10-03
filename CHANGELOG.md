@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.7.4 - The Android app declares the microphone and the camera, and CI compiles it and reads them back out of the APK
+
+OpenClaw-panel card `android` (03/10/2026). The Android manifest asked for `INTERNET` and nothing else (the biometric ones
+come from the plugin), so **voice dictation and "attach a photo" did nothing on Android**: the WebView asks Android at run
+time through wry's `onPermissionRequest`, and Android drops that request when the permission is not declared. Nothing noticed,
+because the CI never opens the Android project.
+
+- **`RECORD_AUDIO` and `CAMERA`** are declared in `AndroidManifest.xml`, with `android.hardware.microphone` and
+  `android.hardware.camera` as `required="false"` so a device without either still installs (Play filters by `uses-feature`).
+  Measured by building the debug APK before and after and reading the permissions out of each with `aapt2`: the original manifest
+  gives `INTERNET` and `USE_BIOMETRIC` only; the new one adds the two, and the features show as "not required".
+- **A ruler in `lib.rs`** (`o_manifesto_do_android_declara_microfone_e_camera_sem_exigi_los`) reads the manifest the build uses, as
+  whole tags with the comments stripped, so a permission inside an XML comment or a `required="true"` does not satisfy it. Five
+  reversals (each permission removed, the camera one commented out, a feature made required, the microphone feature removed), each red.
+- **A new workflow, `android.yml`**, compiles the arm64 debug APK and then reads the permissions and features out of the APK itself
+  (the file Android uses, after Gradle merges the plugins' manifests). It runs only when something that goes into the app changes
+  (`src-tauri`, `src`, `plugins`, `package*.json`, the workflow), and on demand, because `ci.yml` calls compiling Android "an
+  infrastructure decision of its own": it costs minutes the host-target checks do not. Built here in 43 s on a warm machine; the
+  first run on GitHub is the cold measurement.
+- **Not done, and not claimed:** a signed release, the AAB, x86/armv7, and running on a phone (the repo's own docs say it never
+  ran on one). The signing key is the owner's and stays outside the repository. Whether the runtime prompts really appear on a device
+  is the owner's check, in `docs/smoke-test.md`.
+
 ## 0.7.3 - The ShvIA page can save a file on the phone, and that is the only native command it reaches
 
 Owner decision `mobile-download-caminho` (24/09/2026): *"minimal saveFile bridge on both

@@ -607,6 +607,45 @@ mod tests {
         assert!(codigo.contains("MARCA_SELETOR_JS,\n                                PONTE_SALVAR_JS"));
     }
 
+    /// What the Android manifest asks for, read from the file the build uses. Voice dictation and
+    /// "attach a photo" reach the WebView's `onPermissionRequest`, which asks Android at run time —
+    /// and Android drops the request when the permission is not declared. It was not (INTERNET
+    /// only), so both did nothing on Android and nothing here noticed: the CI never compiles it.
+    /// The two features are NOT `required`, or a device without a camera leaves the Play listing.
+    #[test]
+    fn o_manifesto_do_android_declara_microfone_e_camera_sem_exigi_los() {
+        let manifesto = include_str!("../gen/android/app/src/main/AndroidManifest.xml");
+        // Whole tags, not names: a permission inside an XML comment, or a `required="true"`, must
+        // not satisfy this.
+        let sem_comentarios = {
+            let mut s = String::new();
+            let mut resto = manifesto;
+            while let Some(i) = resto.find("<!--") {
+                s.push_str(&resto[..i]);
+                match resto[i..].find("-->") {
+                    Some(f) => resto = &resto[i + f + 3..],
+                    None => break,
+                }
+            }
+            s.push_str(resto);
+            s
+        };
+        for permissao in ["INTERNET", "RECORD_AUDIO", "CAMERA"] {
+            let tag = format!("<uses-permission android:name=\"android.permission.{permissao}\" />");
+            assert!(sem_comentarios.contains(&tag), "{permissao} is not declared as a tag (a comment does not count)");
+        }
+        for recurso in ["microphone", "camera"] {
+            let tag = format!(
+                "<uses-feature android:name=\"android.hardware.{recurso}\" android:required=\"false\" />"
+            );
+            assert!(sem_comentarios.contains(&tag), "android.hardware.{recurso} must be declared, and not required");
+        }
+        assert!(
+            !sem_comentarios.contains("android:required=\"true\""),
+            "a required feature drops devices from the Play listing"
+        );
+    }
+
     /// ADR-005's fence, read from the capability files the build uses: exactly one capability
     /// has remote URLs, they are the ShvIA hosts, and it grants `salvar_arquivo` and nothing
     /// else. No capability grants a `dialog:` or `fs:` permission to any page.
