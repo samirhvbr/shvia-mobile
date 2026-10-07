@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.7.6 - The App Review Notes say the sign-up is open, and name the labels the screen shows
+
+The Notes of the 09/09 resubmission said *"there is no public sign-up in the app"*. On 07/10/2026
+`https://ai.shvia.org/register` answers 200, the sign-in page offers "Create one here", and the owner confirmed
+the sign-up is open **on purpose**. The claim was false again: the same disagreement between what we tell
+Apple and what the product does that `docs/rejeicao-20260910.md` records for the second rejection.
+
+- **Measured, not remembered.** The form served today asks for first name, last name, email, password, the
+  terms and an `age_confirmation` checkbox, all required; the three phone fields are optional; there is no
+  date of birth. That is exactly what shvia-web#166 changed, so the 5.1.1(v) finding of 10/09 (phone and date
+  of birth required) is answered in the product itself, not only by closing the form.
+- **The labels were read from shvia-web master (2.111.108), in both languages**, because the reviewer's device
+  decides which one the screen shows: Settings → System → "Account and danger zone" → card "Delete my account" →
+  button "I want to delete my account" → password → "Delete permanently" (pt-BR: Sistema → "Conta e zona de
+  risco" → "Excluir minha conta" → "Quero excluir minha conta" → "Excluir definitivamente"). The earlier text
+  quoted only Portuguese and wrote the pane as "Conta & zona de risco", which is a comment in the Blade file,
+  not the string the screen shows.
+- **`docs/app-review-notes.md`** gets the text for this submission, with the sign-up paragraph and both
+  languages for the deletion path. The 09/09 sections stay as the record of what was in the field then.
+- **Not verified here:** the screens behind the login (no credentials in this session), that the demo account
+  `apple@shvia.org` is alive and its password still matches App Store Connect, and that the deletion video is
+  still attached to the version being submitted. The first two are the owner's five-minute check before Submit.
+
 ## 0.7.6 - The iOS build compiles again on Xcode 27: swift-rs moves to 1.0.8
 
 Xcode 27.0 (27A266a) ships Swift 6.4, whose `swift build` defaults to the `swiftbuild` backend (the native

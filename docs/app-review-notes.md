@@ -12,6 +12,58 @@ code, hours before the resubmission of build 0.6.5.
 
 ---
 
+## The text for the 0.7.6 submission (07/10/2026)
+
+Written after re-reading the Notes against the product, which is the check that failed
+three times (`docs/rejeicao-20260910.md`). What was measured, and where:
+
+| Claim | Measured | How |
+|---|---|---|
+| Public sign-up exists | `GET https://ai.shvia.org/register` → 200; sign-in page links "Create one here" | `curl`, 07/10/2026; the owner confirmed it is open **on purpose** |
+| Phone optional, no date of birth, 18+ checkbox | `phone_ddi/ddd/number` optional; `first_name`, `last_name`, `email`, `password`, `terms`, `age_confirmation` required; no birth-date field | the served form, field by field |
+| Deletion path, English | Settings → System → "Account and danger zone" → card "Delete my account" → button "I want to delete my account" → password → "Delete permanently" | `lang/en/settings.php` + `dashboard.blade.php` (shvia-web master 2.111.108) |
+| Deletion path, Portuguese | Sistema → "Conta e zona de risco" → "Excluir minha conta" → "Quero excluir minha conta" → "Excluir definitivamente" | `lang/pt_BR/settings.php` |
+
+The previous text wrote the pane as "Conta & zona de risco"; the `&` lives in a comment in the
+Blade file, the string the screen shows is "Conta e zona de risco".
+
+**Not measured from here, and to be checked before Submit:** the screens behind the login (this
+session has no credentials), that `apple@shvia.org` is alive and its password matches the one in
+App Store Connect, that the deletion video is attached to this version, and the microphone and
+Face ID claims on the build being submitted (the smoke test on the iPhone covers them).
+
+```text
+ShvIA is an AI workspace delivered as a thin native client for our web application
+(ai.shvia.org). Sign in with the demo account provided above. The in-app content is
+served from our own domain only; general web browsing is not possible.
+
+Sign-up (public): the sign-in screen has a "Create one here" link to a sign-up form.
+It asks for first name, last name, email, password, acceptance of the terms and a
+confirmation that the user is 18 or older. The phone number is optional and we do
+not collect a date of birth.
+
+Account deletion (Guideline 5.1.1(v)): Settings -> System -> "Account and danger
+zone" -> "I want to delete my account" -> enter the account password -> "Delete
+permanently". (Portuguese interface: Sistema -> "Conta e zona de risco" -> "Quero
+excluir minha conta" -> "Excluir definitivamente".) This permanently deletes the
+account and its content (conversations, files, projects, memories and provider keys);
+it is not a deactivation. A screen recording of this exact flow on a physical iPhone
+is attached. It uses a throwaway account (appletest@shvia.org), not the demo account
+above, because the flow deletes the account for real.
+
+Native features beyond the web experience: Face ID app lock (opt-in card on first
+launch; the app locks again each time it returns from the background), push
+notifications (APNs), camera for photos attached to a message, microphone for voice
+dictation (the microphone button in the message composer records, and the audio is
+transcribed on our server), saving a file to the phone through the system "save as"
+sheet, and external links opening in Safari.
+```
+
+⚠️ The counter under the Notes field counts **down** (what is left of 4,000), as
+recorded below. This text is about 1,600 characters (line breaks included), so it should read about `2,400`.
+
+---
+
 ## The text in the field on 09/09/2026 (613 characters — the whole of it)
 
 > 🔴 **The counter under the Notes field counts DOWN, and reading it as "used"
