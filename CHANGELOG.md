@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.7.6 - The iOS build compiles again on Xcode 27: swift-rs moves to 1.0.8
+
+Xcode 27.0 (27A266a) ships Swift 6.4, whose `swift build` defaults to the `swiftbuild` backend (the native
+one is marked deprecated). `swift-rs` 1.0.7, which compiles every Tauri plugin's Swift package from `build.rs`,
+passes `--sdk` and `-Xswiftc -sdk` the way the native backend expected, so the build of `tauri-plugin-dialog`
+2.7.3 failed on the first iOS compile after the machine moved to Xcode 27: *"clang dependency scanning failure:
+While building module 'AppKit'"*, with the macOS 27 SDK being scanned for an iOS target. Any Tauri 2 app with a
+plugin that has iOS Swift code hits the same wall on this toolchain.
+
+- **`swift-rs` 1.0.7 → 1.0.8**, the release whose `build.rs` says in a comment that Xcode 27's SwiftPM appends
+  the host `-sdk`/`-target` after the `-Xswiftc` ones. `Cargo.lock` changes in exactly that package's version
+  and checksum, nothing else.
+- **Validation build:** `npm run tauri ios build -- --debug --export-method debugging` ends in
+  `BUILD SUCCEEDED` and a signed 18 MB IPA, and the pre-upload audit on it is clean: 0 `.a`/`libapp` in the
+  payload, 1 `PrivacyInfo`, `UIDeviceFamily = [1]`, the microphone, camera and Face ID usage strings and
+  `ITSAppUsesNonExemptEncryption = false` in the bundle, built with the `iphoneos27.0` SDK. It is a probe, not
+  a candidate: signed `Apple Development`, `aps-environment` still `development`.
+- **The version carriers move together.** The 0.7.5 commit changed `version.md` only, so `package.json`, the
+  lockfiles, `Cargo.toml`, `tauri.conf.json`, `project.yml` and the iOS `Info.plist` still said 0.7.4;
+  `scripts/sync-version.mjs` propagates 0.7.6 to all of them here.
+- **A trap for the next machine:** the Tauri CLI starts `xcodebuild` without the caller's environment, so
+  `DEVELOPER_DIR` is ignored and `xcode-select -p` must point at `/Applications/Xcode.app/Contents/Developer`
+  (`sudo xcode-select -s`) or the build stops at *"requires Xcode, but active developer directory is a command
+  line tools instance"*.
+- **Not done, and not claimed:** the 0.7.0–0.7.3 native code (re-lock on resume, GitHub sign-in inside the
+  webview, the save-file bridge) has still not run on an iPhone; the store build and the upload are the next
+  steps and are not part of this commit.
+
 ## 0.7.5 - the echo blocks are regenerated from repodocs
 
 The marked rules in `CLAUDE.md` and `AGENTS.md` are rewritten from the single
