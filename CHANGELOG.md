@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.7.6 - The release build on Xcode 27 needs llvm-tools and a patched SwiftRs shim, written down until swift-rs fixes it
+
+The 0.7.6 entry below says the probe build passes. It was a **debug** build, and the store build
+is a **release** one: on Xcode 27 the two fail differently, and the first store build failed at
+the link. Five attempts, each measured, and what each one taught:
+
+- **No `llvm-objcopy`.** Cargo printed `swift-rs: llvm-objcopy not found` and the link listed
+  `_init_plugin_dialog`, `_log_stdout`, `_register_plugin` … as undefined. Cause: Xcode 27's SwiftPM
+  internalizes the `@_cdecl` exports of a static library, and swift-rs 1.0.8 promotes them back with
+  rustup's `llvm-tools`. Fix: `rustup component add llvm-tools`.
+- **Cargo's cache hid the fix.** The warning persisted after the install because the Swift build
+  scripts' output is cached. `cargo clean --release --target aarch64-apple-ios` on `swift-rs` and the four
+  plugin crates made them run again, and the plugin symbols resolved.
+- **Three symbols still undefined:** `_retain_object`, `_release_object`, `_string_from_bytes`, all
+  from `SwiftRs.o`, the runtime shim every archive embeds. swift-rs promotes only the archive member that
+  carries the package's name. This is
+  [swift-rs#81](https://github.com/Brendonovich/swift-rs/issues/81) (open, 15/09/2026); the proposed
+  fix, #82, is open and unreleased. Promoting the four shim symbols with `llvm-objcopy` in `libTauri.a`
+  (checked with `nm`: `t` → `T`, and in the archive's symbol table) was not enough by itself:
+- **`rustc` bundles a static library into the rlib of the crate that links it.** `libtauri-<hash>.rlib` still
+  held the old copy of `libTauri.a`. Removing only the `tauri` library unit's fingerprint made Cargo
+  recompile it with the patched archive, and the build ended in `BUILD SUCCEEDED`.
+
+**The store build, measured:** a 3.8 MB IPA (the debug probe was 18 MB). 0 `.a`/`libapp` in the payload,
+1 `PrivacyInfo`, `UIDeviceFamily = [1]`, `MinimumOSVersion` 15.0, `DTSDKName iphoneos27.0`,
+`CFBundleShortVersionString` and `CFBundleVersion` 0.7.6, the microphone, camera and Face ID strings and
+`ITSAppUsesNonExemptEncryption = false` in the bundle. Signed `Apple Distribution: BLUE3 TECNOLOGIA LTDA
+(S65UBCTPN5)` with `iOS Team Store Provisioning Profile: cloud.blue3.shvia`, valid to 2027-07-17;
+entitlements `aps-environment = production` (the debug probe had `development`) and
+`get-task-allow = false`. The distribution certificate is cloud-managed: the keychain still lists only
+`Developer ID Application` and `Apple Development`.
+
+- **`docs/xcode27-release-build.md`** is the procedure, step by step, with the exact commands and the
+  condition to delete it (a swift-rs release that includes the fix).
+- **Not claimed:** that the workaround is anything but a local patch of build intermediates, so it is
+  repeated on every machine and after every `cargo clean` of those crates; that the 0.7.0–0.7.3 native code
+  has run on an iPhone (it has not); the upload. The IPA is built, not delivered.
+
 ## 0.7.6 - The App Review Notes say the sign-up is open, and name the labels the screen shows
 
 The Notes of the 09/09 resubmission said *"there is no public sign-up in the app"*. On 07/10/2026
