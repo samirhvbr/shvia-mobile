@@ -75,3 +75,9 @@ jobs:
       # momento mais caro possível.
       - name: Portadores de versão (F-24)
         run: npm run prova:bump
+
+      # Os ícones são binários e o CI não compila iOS: sem isto, um export velho (ou de outra
+      # identidade) chega à App Store sem que nada fique vermelho. Aconteceu em 14/10/2026,
+      # com o Portal indo na 0.7.7 uma semana depois da aprovação do Shield.
+      - name: Ícones numa só identidade
+        run: npm run prova:icones

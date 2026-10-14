@@ -10,7 +10,9 @@
     "tauri": "tauri",
     "version:sync": "node scripts/sync-version.mjs",
     "prebuild": "node scripts/sync-version.mjs",
-    "prova:bump": "node scripts/sync-version.mjs --verificar"
+    "prova:bump": "node scripts/sync-version.mjs --verificar",
+    "prova:icones": "node scripts/verify-icons.mjs",
+    "icones:selar": "node scripts/verify-icons.mjs --selar"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.3",

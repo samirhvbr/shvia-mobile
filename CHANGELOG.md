@@ -36,6 +36,31 @@ approved. Viewed side by side, in one sheet, that was four faces for one product
   the previous one; the site favicon, which lives in its own repository; the 0.7.8 IPA, which comes next; and the
   App Store still shows the "AI" icon until a build with this one is approved.
 
+## 0.7.8 - A seal and a CI step keep the app icons on one identity, and the brand doc says Shield
+
+The icons are binary and the CI compiles no iOS, so a stale export reaches the store without anything turning
+red; it did, one export behind the approved brand. This repository cannot read SHVIA-WEB (a sibling checkout the
+CI does not have), so the ruler pins what it holds.
+
+- **`brand/icones.json`** is the seal: the identity (`shield`, approved 27/09/2026), the sha256 of the source
+  SVG and of 73 files (the iOS icons, `src-tauri/icons`, the Android `mipmap-*dpi`, the brand exports and
+  `public/brand-mark.svg`). `npm run icones:selar` rewrites it after a deliberate export.
+- **`npm run prova:icones`**, a new CI step next to `prova:bump`, fails when a file differs from the seal or is
+  missing from it, when `brand/shield-app.svg` does not look like the Shield (it must carry the app-icon label,
+  the ink fill and the shield path) or carries Portal cyan, when an iOS PNG has an alpha channel (colour type 4 or
+  6, or a `tRNS` chunk), when the Android adaptive background is not `#111317`, when any Android XML still has
+  `#34B3EC`, and when `public/brand-mark.svg` differs from the stamped symbol.
+- **Four reversals, each red:** the 0.6.x iOS icon put back (1 problem: differs from the seal); the Android
+  background back to cyan (3); the source SVG swapped for a Portal-coloured one (6); an iOS icon replaced by a
+  transparent PNG (differs, and alpha). Restored, 73 of 73 conform.
+- **`docs/brand.md`** said "Portal identity" and "cyan backgrounds". It now describes the Shield, where each
+  icon lives, the seal, and the refresh procedure, including running the exporter on a scratch copy and the one
+  exception: the exporter's Android adaptive foreground is a Portal leftover and has to be rendered by hand until
+  the exporter is fixed upstream.
+- **Limit:** the seal says "these files are what was exported", not "the Shield in SHVIA-WEB has not changed
+  since". Someone who exports an old identity and then re-stamps is caught only by the source checks (label, ink
+  fill, shield path, no cyan). Comparing against SHVIA-WEB belongs in that repository.
+
 ## 0.7.7 - The Tauri stack moves to 2.12.1 (tao 0.37.1), the crates and the npm packages together
 
 The scene lifecycle that iOS 27 demands (next entry) has a second half: in scene mode the app no longer
