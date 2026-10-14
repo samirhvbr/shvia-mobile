@@ -52,6 +52,12 @@ affected: it already declares the manifest and has a `SceneDelegate`.
   not install from here; TestFlight is that test), and iPad (the target is iPhone-only). Any other Tauri iOS app
   built with the iOS 27 SDK and no manifest, Tura Notes' `ios-bringup` branch included, has the same hole.
 
+## 0.7.7 - The Xcode 27 procedure is linked from the README, which the doc ruler demanded
+
+`todo_doc_e_alcancavel` has been red since 0.7.6: `docs/xcode27-release-build.md` was created without a link
+from `README.md`, and the tests were not run again after the document was added. The gate of that commit was
+measured before the file existed. The README's list of documents now names it; 21 of 21 tests pass.
+
 ## 0.7.6 - The release build on Xcode 27 needs llvm-tools and a patched SwiftRs shim, written down until swift-rs fixes it
 
 The 0.7.6 entry below says the probe build passes. It was a **debug** build, and the store build
