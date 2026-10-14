@@ -74,6 +74,17 @@ targets:
         NSMicrophoneUsageDescription: O microfone é usado para ditar mensagens por voz no chat.
         NSCameraUsageDescription: A câmera é usada para tirar fotos e anexá-las ao chat.
         NSFaceIDUsageDescription: O Face ID desbloqueia o ShvIA localmente, sem digitar a senha a cada acesso.
+        # iOS 27 KILLS an app built with its SDK that has no scene manifest: the first scene the
+        # system creates trips `UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`
+        # (EXC_BREAKPOINT, 0.2 s after launch; TestFlight 0.7.6 on an iPhone 17 Pro Max, 12/10).
+        # tao 0.37 turns its scene mode on when this key exists, and the class below is the
+        # delegate it registers; it is also what delivers `Resumed` (the relock) in scene mode.
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: TaoScene
+                UISceneDelegateClassName: TaoSceneDelegate
         # Export-compliance exemption (system HTTPS/TLS only): avoids the manual
         # question on EVERY App Store Connect upload.
         ITSAppUsesNonExemptEncryption: false

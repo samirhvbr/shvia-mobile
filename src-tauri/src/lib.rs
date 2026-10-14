@@ -1092,4 +1092,58 @@ mod tests {
             faltando.join("\n  ")
         );
     }
+
+    /// iOS 27 kills an app built with its SDK that adopts no scene lifecycle: the first scene
+    /// the system creates trips `UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`
+    /// and the process dies with SIGTRAP 0.2 s after launch (TestFlight 0.7.6, iPhone 17 Pro Max,
+    /// iOS 27.0.1, 12/10/2026). Nothing in the tree noticed: the CI compiles no iOS, and the
+    /// simulator runtime here is 26.5, where the same check only warns. tao turns its scene mode
+    /// on when `UIApplicationSceneManifest` exists, and `TaoSceneDelegate` is the delegate it
+    /// registers, so the pair has to be in the two files the build reads. Comments do not
+    /// count: a key that only appears in an explanation is not declared.
+    #[test]
+    fn o_ios_declara_o_manifesto_de_cenas_nas_duas_fontes() {
+        let raiz = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let fontes = [
+            raiz.join("gen/apple/project.yml"),
+            raiz.join("gen/apple/shvia-mobile_iOS/Info.plist"),
+        ];
+        if fontes.iter().any(|f| !f.exists()) {
+            eprintln!("gen/apple ausente — régua pulada (rode `tauri ios init` no Mac)");
+            return;
+        }
+        let sem_comentarios = |t: &str| -> String {
+            let mut s = String::new();
+            let mut resto = t;
+            while let Some(i) = resto.find("<!--") {
+                s.push_str(&resto[..i]);
+                match resto[i..].find("-->") {
+                    Some(f) => resto = &resto[i + f + 3..],
+                    None => break,
+                }
+            }
+            s.push_str(resto);
+            s.lines()
+                .filter(|l| !l.trim_start().starts_with('#'))
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
+        let mut faltando: Vec<String> = Vec::new();
+        for f in &fontes {
+            let t = std::fs::read_to_string(f).unwrap_or_else(|e| panic!("{} ilegível: {e}", f.display()));
+            let t = sem_comentarios(&t);
+            for c in ["UIApplicationSceneManifest", "TaoSceneDelegate"] {
+                if !t.contains(c) {
+                    faltando.push(format!("{c} em {}", f.display()));
+                }
+            }
+        }
+        assert!(
+            faltando.is_empty(),
+            "manifesto de cenas do iOS ausente:\n  {}\n\
+             Sem ele o iOS 27 derruba o app ao criar a primeira cena. Mora no bloco \
+             `info: properties:` do project.yml E no Info.plist gerado.",
+            faltando.join("\n  ")
+        );
+    }
 }

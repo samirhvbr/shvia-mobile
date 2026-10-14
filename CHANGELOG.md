@@ -21,6 +21,37 @@ that method (and `Suspended` on resign-active). The sibling project already runs
 - **Not verified:** that `Resumed` really reaches the re-lock on a device. That needs the app in the
   background and back, with the Face ID lock on, and goes through TestFlight.
 
+## 0.7.7 - The iOS app declares the scene manifest that iOS 27 demands
+
+**TestFlight 0.7.6 did not open.** Five crash reports on the owner's iPhone 17 Pro Max (iOS 27.0.1, 24A446),
+12/10 to 14/10/2026, all the same: `EXC_BREAKPOINT` / `SIGTRAP`, 0.2 s after launch, on the main thread, top
+frame `___UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption_block_invoke`, reached from
+`-[UIApplication workspace:didCreateScene:withTransitionContext:completion:]`. An app linked against the iOS 27
+SDK that has no `UIApplicationSceneManifest` is killed by UIKit the first time the system creates its scene.
+The reports were already on the phone (`xcrun devicectl device copy from --domain-type systemCrashLogs`),
+nobody had to wait for TestFlight's.
+
+**Why nothing noticed.** The CI compiles no iOS, and the only simulator runtime on this Mac is 26.5, where
+the same check only warns. The 0.6.5 binary in App Store Connect predates the SDK. Blue3's Flutter app is not
+affected: it already declares the manifest and has a `SceneDelegate`.
+
+- **The manifest**, with `UISceneDelegateClassName = TaoSceneDelegate` (the delegate `tao` registers) and a
+  single scene, lives in the three places this repo keeps iOS keys: the `info: properties:` block of
+  `gen/apple/project.yml` (XcodeGen's source), the generated `Info.plist` (what goes into the bundle) and
+  `src-tauri/Info.ios.plist`. `tao` 0.37 switches its scene mode on when the key exists.
+- **A ruler,** `o_ios_declara_o_manifesto_de_cenas_nas_duas_fontes`, reads the two files the build uses and
+  counts a key only outside comments. Two reversals, each red: the manifest removed from the generated
+  `Info.plist`, and the key kept only inside a YAML comment. Restored, 21 of 21 pass.
+- **Verified on the device that crashed.** The 0.7.7 debug build, installed with `devicectl`, was still
+  running at 4, 8 and 12 s after launch and later, and no crash report names 0.7.7. The two reports from
+  14/10 15:22 name version 0.7.6 (the TestFlight copy that was opened first). The owner's own check: "abriu".
+  The installed version was read back from the device each time: the first install had been replaced by the
+  TestFlight copy and the app that "closed at once" was 0.7.6.
+- **Not verified:** the Face ID re-lock after the app goes to the background and returns in scene mode
+  (0.7.0's `Resumed`, see the previous entry), the exact release binary on a device (a store-signed IPA does
+  not install from here; TestFlight is that test), and iPad (the target is iPhone-only). Any other Tauri iOS app
+  built with the iOS 27 SDK and no manifest, Tura Notes' `ios-bringup` branch included, has the same hole.
+
 ## 0.7.6 - The release build on Xcode 27 needs llvm-tools and a patched SwiftRs shim, written down until swift-rs fixes it
 
 The 0.7.6 entry below says the probe build passes. It was a **debug** build, and the store build

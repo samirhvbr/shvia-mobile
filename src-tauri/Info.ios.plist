@@ -18,5 +18,25 @@
          evita a pergunta manual a CADA upload no TestFlight/App Store Connect. -->
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <!-- Ciclo de vida por cenas: o iOS 27 derruba (SIGTRAP ao criar a primeira cena) o app
+         compilado com o SDK 27 que não declara este manifesto. O tao 0.37 liga o modo cena
+         quando a chave existe e entrega o `Resumed` (o rebloqueio) por ele. -->
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+      <key>UIApplicationSupportsMultipleScenes</key>
+      <false/>
+      <key>UISceneConfigurations</key>
+      <dict>
+        <key>UIWindowSceneSessionRoleApplication</key>
+        <array>
+          <dict>
+            <key>UISceneConfigurationName</key>
+            <string>TaoScene</string>
+            <key>UISceneDelegateClassName</key>
+            <string>TaoSceneDelegate</string>
+          </dict>
+        </array>
+      </dict>
+    </dict>
   </dict>
 </plist>
