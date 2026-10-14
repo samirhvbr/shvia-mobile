@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.7.8 - The app icons come from the Shield identity approved on 27/09, not the Portal
+
+Asked "is the icon right?" at the Transporter, with the 0.7.7 IPA ready to deliver, the answer was: it was
+the right file and the wrong brand. The icon inside the 0.7.7 IPA is the **Portal** (a cyan tile with ink
+brackets), applied in 0.6.32 on 16/09. The brand README in SHVIA-WEB says the current identity is the
+**Shield**, approved on 27/09, and the desktop (`icon.png`, 27/09) and the web favicon (01/10) already carry it.
+App Store Connect shows a third face, the 0.6.5 "AI" with a wing, until a build with a newer icon is
+approved. Viewed side by side, in one sheet, that was four faces for one product.
+
+- **The cause** is an export that was never run here. SHVIA-WEB's `brand/tools/export.cjs` writes the Shield
+  into the web, the desktop, this repository, the site and the Workspace; by modification times and by
+  looking at each file it ran for the web and the desktop only. The site favicon is still the Portal too.
+- **How it was run.** The brand doc warns the exporter writes into sibling checkouts, and its web half resolves
+  its paths from the script's own location, so it ran on a **scratch copy** of the icon folders, after
+  confirming the five real repositories were clean, with `sharp` and Pillow installed outside any repository.
+  Diff per repository: web, 4 wallpaper files (no icon); desktop, 12 files (Windows tiles, `icon.icns`,
+  `icon.ico`); site, `favicon.svg`; Workspace, 2; this repository, 73. Only this repository's 73 were brought
+  over; the others were left alone.
+- **What changed here:** `brand/` (`shield-app.svg`, `shield-symbol.svg`, the 1024 PNG and the mark),
+  `public/brand-mark.svg` (the bootstrap, offline and lock screens use it, so the app's own screens change
+  too), `src-tauri/icons/` (35 files), the 18 iOS `AppIcon.appiconset` PNGs, and the Android `mipmap-*dpi`
+  PNGs (15).
+- **The Android adaptive icon needed a decision the exporter does not make.** Its foreground paints the
+  shield's cobalt in ink, a leftover of the Portal's dark-on-cyan foreground, and nothing touches
+  `ic_launcher_background` (still `#34B3EC`). Four combinations were rendered and compared; the one kept is the
+  shield in its own colours on ink `#111317`, which is the iOS composition. The foreground was rendered from
+  `shield-symbol.svg` in the exporter's safe-centre transform at 108, 162, 216, 324 and 432 px, and both
+  `values/ic_launcher_background.xml` and `drawable/ic_launcher_background.xml` are now `#111317`.
+  `drawable-v24/ic_launcher_foreground.xml`, a Portal vector that nothing references (the adaptive icon points to
+  the PNG), is removed.
+- **Measured:** the 18 iOS and 18 `icons/ios` PNGs have no alpha channel; the corners are ink, and the centre
+  reads cobalt on the left hemisphere and mist on the right.
+- **Not done, and not claimed:** the desktop's 12 files, so the macOS dock icon of the desktop app may still be
+  the previous one; the site favicon, which lives in its own repository; the 0.7.8 IPA, which comes next; and the
+  App Store still shows the "AI" icon until a build with this one is approved.
+
 ## 0.7.7 - The Tauri stack moves to 2.12.1 (tao 0.37.1), the crates and the npm packages together
 
 The scene lifecycle that iOS 27 demands (next entry) has a second half: in scene mode the app no longer
