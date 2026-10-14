@@ -1,7 +1,7 @@
 {
   "name": "shvia-mobile",
   "private": true,
-  "version": "0.7.6",
+  "version": "0.7.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,12 +13,12 @@
     "prova:bump": "node scripts/sync-version.mjs --verificar"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2",
+    "@tauri-apps/api": "^2.12.3",
     "@tauri-apps/plugin-biometric": "^2.3.2",
     "@tauri-apps/plugin-opener": "^2"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2",
+    "@tauri-apps/cli": "^2.12.2",
     "typescript": "~5.6.2",
     "vite": "^6.0.3"
   }

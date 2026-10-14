@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.7.7 - The Tauri stack moves to 2.12.1 (tao 0.37.1), the crates and the npm packages together
+
+The scene lifecycle that iOS 27 demands (next entry) has a second half: in scene mode the app no longer
+gets `applicationWillEnterForeground`, the scene delegate does. Read in the sources: `tao` 0.35.3, the one
+0.7.6 shipped, has `sceneWillEnterForeground` as an empty method and emits only `Focused` events, so the
+`WindowEvent::Resumed` that 0.7.0's re-lock listens to would never fire. `tao` 0.37.1 emits `Resumed` from
+that method (and `Suspended` on resign-active). The sibling project already runs this stack.
+
+- **`Cargo.lock`:** `tauri` 2.11.5 -> 2.12.1, `tauri-runtime` and `tauri-runtime-wry` 2.12.1, `wry` 0.55.1 ->
+  0.57.0, `tao` 0.35.3 -> 0.37.1, `tauri-build` and `tauri-codegen` 2.7.2. The four plugins and `swift-rs`
+  1.0.8 do not move. `cargo update -p tauri` alone only reached 2.11.6, because 2.11.x pins the old
+  `wry`; `--precise 2.12.1` is what moves the runtime.
+- **`package.json`:** `@tauri-apps/api` ^2.12.3 and `@tauri-apps/cli` ^2.12.2. The CLI refuses to build when
+  the minors differ (*"tauri (v2.12.1) : @tauri-apps/api (v2.11.1)"*, measured), so the crates and the npm
+  packages move in the same commit.
+- **Version carriers** go to 0.7.7 with `scripts/sync-version.mjs`.
+- **Verified:** `cargo clippy --all-targets -D warnings` clean on the host with the new stack, and
+  `prova:bump` green. The debug build for a device compiles and runs (next entry).
+- **Not verified:** that `Resumed` really reaches the re-lock on a device. That needs the app in the
+  background and back, with the Face ID lock on, and goes through TestFlight.
+
 ## 0.7.6 - The release build on Xcode 27 needs llvm-tools and a patched SwiftRs shim, written down until swift-rs fixes it
 
 The 0.7.6 entry below says the probe build passes. It was a **debug** build, and the store build
