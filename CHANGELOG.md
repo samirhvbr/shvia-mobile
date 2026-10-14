@@ -58,6 +58,22 @@ affected: it already declares the manifest and has a `SceneDelegate`.
 from `README.md`, and the tests were not run again after the document was added. The gate of that commit was
 measured before the file existed. The README's list of documents now names it; 21 of 21 tests pass.
 
+## 0.7.7 - The swift-rs workaround was not needed on Tauri 2.12.1, and the doc says so
+
+The first release store build of 0.7.7, right after the stack moved to Tauri 2.12.1, ended in `BUILD
+SUCCEEDED` with only `xcode-select` and `llvm-tools` in place: no `cargo clean` of the Swift crates, no
+`llvm-objcopy` on `libTauri.a`, no fingerprint removal (the five steps 0.7.6 needed). Audit of the IPA: 3.9 MB,
+0 `.a`/`libapp` in the payload, 1 `PrivacyInfo`, `UIDeviceFamily = [1]`, `MinimumOSVersion` 15.0, `DTSDKName
+iphoneos27.0`, 0.7.7, `UIApplicationSceneManifest` with `TaoSceneDelegate` and the class present in the binary,
+signed `Apple Distribution: BLUE3 TECNOLOGIA LTDA (S65UBCTPN5)` with `iOS Team Store Provisioning Profile:
+cloud.blue3.shvia`, `aps-environment = production`, `get-task-allow = false`.
+
+- **`docs/xcode27-release-build.md`** gets a note at the top: steps 2 to 5 are for the 2.11.x lock. The page
+  stays, because a checkout still on that lock needs it.
+- **Measured, not explained:** why the new stack links. `swift-rs` is still 1.0.8 and swift-rs#81 is open as
+  far as this repo knows; the new `tauri` build has its own `libTauri.a`. Nobody opened it to find out.
+- **Not done:** the upload. The IPA is built and audited, not delivered.
+
 ## 0.7.6 - The release build on Xcode 27 needs llvm-tools and a patched SwiftRs shim, written down until swift-rs fixes it
 
 The 0.7.6 entry below says the probe build passes. It was a **debug** build, and the store build

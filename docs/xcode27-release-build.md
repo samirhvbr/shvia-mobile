@@ -1,5 +1,13 @@
 # Release build on Xcode 27 — the swift-rs workaround, until it is fixed upstream
 
+> **Update 14/10/2026 — on Tauri 2.12.1 (`tao` 0.37.1) the workaround below was NOT needed.**
+> The first release store build of 0.7.7, after `cargo update -p tauri --precise 2.12.1`, ended in
+> `BUILD SUCCEEDED` and a 3.9 MB IPA with only steps 0 and 1 done: no `cargo clean`, no
+> `llvm-objcopy` on `libTauri.a`, no fingerprint removal. That was measured; **why** it works was
+> not investigated (the new `tauri` build has its own `libTauri.a`, and `swift-rs` is still 1.0.8).
+> Steps 2 to 5 are for the 2.11.x lock that built 0.7.6; keep this page until a machine on a 2.11.x
+> lock no longer exists, then delete it.
+
 On Xcode 27 (Swift 6.4) the **debug** iOS build works and the **release** iOS build fails at
 the link. This page is the procedure that produced the 0.7.6 store build on 07/10/2026, and
 the measurements behind each step. **Delete it when `swift-rs` publishes the fix** (see the
