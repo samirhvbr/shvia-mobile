@@ -1,5 +1,8 @@
 # Release build on Xcode 27 — the swift-rs workaround, until it is fixed upstream
 
+> **Current entry point:** [Operations](operations.md). The procedure below is a
+> dated investigation; read the 14 October update before applying any archive patch.
+
 > **Update 14/10/2026 — on Tauri 2.12.1 (`tao` 0.37.1) the workaround below was NOT needed.**
 > The first release store build of 0.7.7, after `cargo update -p tauri --precise 2.12.1`, ended in
 > `BUILD SUCCEEDED` and a 3.9 MB IPA with only steps 0 and 1 done: no `cargo clean`, no

@@ -1,5 +1,11 @@
 # ShvIA Mobile — Roadmap de Produção (M0–M5)
 
+> **Nota de revisão documental — 15/10/2026.** Este roteiro mantém propostas e
+> medições datadas. O retrato atual da implementação fica em
+> [docs/current-state.md](../docs/current-state.md); operação em
+> [docs/operations.md](../docs/operations.md). Caixas antigas não confirmam o estado
+> atual das lojas/aparelhos. Nenhum item pendente foi removido por esta revisão.
+
 > Este repo é o cliente **mobile** (iOS + Android) do ShvIA, em **Tauri 2** (ADR-001).
 > Irmãos: `SHVIA-DESKTOP` (desktop) e `SHVIA` (servidor Laravel). WIP mora aqui;
 > quando amadurece, migra para `docs/`.

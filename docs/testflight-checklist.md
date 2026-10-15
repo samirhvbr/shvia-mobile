@@ -1,5 +1,10 @@
 # TestFlight & App Store — checklist de submissão iOS
 
+> **Historical record — 15 October 2026.** Sections below preserve dated July–September
+> measurements and submission instructions. Old “today”, pending boxes and version numbers
+> are not current portal status. Use [Operations](operations.md) for the current procedure
+> and [Current state](current-state.md) for implemented features.
+
 > Fecha o M2 (TestFlight) e prepara o M4 (loja). O app é **shell fino Tauri 2**
 > (`cloud.blue3.shvia`) carregando `ai.shvia.org`. Conta Apple da Blue3 já
 > existe — **Team ID `S65UBCTPN5`**. Build **só no Mac** (Xcode).

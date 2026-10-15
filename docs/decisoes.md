@@ -1,5 +1,11 @@
 # ShvIA Mobile — Decisões (ADRs)
 
+> **Implementation note — 15 October 2026.** ADRs retain their decision history.
+> ADR-002’s “client push still missing” predates the implemented iOS APNs plugin;
+> its no-remote-command language predates ADR-005’s export-only command.
+> Use [Current state](current-state.md) and [Integration](integration.md) for the
+> current boundary. The iOS scene lifecycle also qualifies older resume-event wording.
+
 Formato ADR. Não relitigar direção já decidida dentro de um how-to — linkar o ADR.
 
 ---
