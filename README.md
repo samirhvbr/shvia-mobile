@@ -1,73 +1,71 @@
 # ShvIA Mobile
 
-Cliente **mobile (iOS + Android)** do ShvIA — **shell fino Tauri 2** que carrega o
-ShvIA hospedado (`https://ai.shvia.org`) na WebView nativa (WKWebView / Android
-System WebView). Irmão do `SHVIA-DESKTOP` (desktop) e do `SHVIA` (servidor Laravel).
+ShvIA Mobile is the iOS and Android client of [ShvIA](https://ai.shvia.org): an AI
+workspace for conversations, projects, knowledge and engineering work. A small
+Tauri 2 shell opens the hosted ShvIA Web interface in WKWebView or Android System
+WebView. The server owns accounts, data, models and permissions; this repository
+owns startup and native mobile integrations.
 
-> Antes de mexer: **`git pull`**. Convenções em [CLAUDE.md](CLAUDE.md) ·
-> Roadmap em [.continue/escopo-mobile.md](.continue/escopo-mobile.md) ·
-> Decisões em [docs/decisoes.md](docs/decisoes.md).
->
-> **Todos os documentos:** [decisoes.md](docs/decisoes.md) (ADRs) ·
-> [testflight-checklist.md](docs/testflight-checklist.md) (ordem de execução da
-> publicação) · [loja-ficha.md](docs/loja-ficha.md) (campos do App Store Connect,
-> prontos para colar) · [smoke-test.md](docs/smoke-test.md) (roteiro manual no
-> aparelho) · [app-review-notes.md](docs/app-review-notes.md) (o texto das Notes
-> do App Store Connect, com a revisão de 09/09/2026) ·
-> [xcode27-release-build.md](docs/xcode27-release-build.md) (o build de release no
-> Xcode 27 e o contorno do swift-rs, até a correção sair) · [rejeicao-20260812.md](docs/rejeicao-20260812.md) e
-> [rejeicao-20260910.md](docs/rejeicao-20260910.md) (as mensagens literais da App Review). O `docs/` deste repo é pequeno o bastante para caber aqui — não há
-> `docs/README.md` separado, e o teste `todo_doc_e_alcancavel` reprova documento
-> que fique de fora desta lista.
+The bundle/application ID is `cloud.blue3.shvia`. [version.md](version.md)
+identifies the shell; the hosted Web has its own version and release cycle.
 
-## Status
+## What the app adds
 
-**M2 fechado** (15/07): o app roda no **iPhone físico** via TestFlight interno,
-com biometria (Face ID/Touch ID) na 0.4.0 e o domínio próprio `ai.shvia.org` na
-0.5.0. Android **builda** (APK/AAB no Linux), mas ainda não rodou em aparelho.
+- Local startup screen, reachability checks and reconnect controls.
+- Optional biometric startup/resume gate and supported device-credential fallback.
+- File export through the system save sheet.
+- Camera/microphone declarations for Web features and WebView speech output.
+- iOS APNs registration, foreground notifications and notification-tap routing.
+- Navigation rules for ShvIA, external links and a narrow GitHub sign-in exception.
 
-**Em publicação (revisão de 30/07).** O caminho crítico agora é o M4. Ordem de
-execução no **[docs/testflight-checklist.md](docs/testflight-checklist.md) §0**;
-o que a revisão achou, em [.continue/escopo-mobile.md](.continue/escopo-mobile.md) §5.
-Em uma linha:
+See the [feature matrix and contracts](docs/current-state.md) for platform limits.
 
-- 🟢 **Privacidade e suporte:** escritas em 30/07 no `SHVIA-SITE` 0.4.0
-  (`shvia.org/privacidade.html` e `/suporte.html`) — era o bloqueio duro do App
-  Store Connect. Falta razão social + CNPJ, as caixas de e-mail e o deploy.
-- 🔴 **`gen/apple` é de 14/07** e ficou defasado: faltava `NSFaceIDUsageDescription`
-  (o iOS **encerra o app** sem ela, no card de Face ID da 1ª execução), faltava
-  `ITSAppUsesNonExemptEncryption`, a versão estava em `0.2.6` e o
-  `PrivacyInfo.xcprivacy` não está no alvo Xcode. Remendado na 0.5.3; a cura é
-  `tauri ios init` no Mac.
-- 🟡 **Push (APNs) segue 0% no cliente** — servidor pronto desde a 2.51.0, mas nem
-  a casca nem o front do SHVIA-WEB registram token. É a defesa mais forte contra a
-  regra **4.2** e a aposta em aberto da submissão pública.
+## Current status
 
-## Build
+The checked-in iOS project targets **iPhone, iOS 15 or later**. Android targets
+**API 24 or later**, with compile/target SDK 36. APNs is implemented on iOS;
+Android FCM, Universal/App Links, a custom URL scheme and incoming shares are not
+implemented here.
+
+Earlier iPhone/TestFlight use and a release build after the iOS 27 scene correction
+are dated repository records, not acceptance of each later build. Android has a
+debug-build CI workflow; compilation does not establish device acceptance. Store
+approval, currently installed versions, production APNs and Play distribution
+were **not inspected in the documentation review of 15 October 2026**.
+
+Remote Code belongs to the hosted Web/Workspace services. The phone does not run
+local Claude Code, Codex or SHVIA CLI processes. See
+[Integration](docs/integration.md) for local desktop projects versus persistent
+remote environments and the current server-side bridge.
+
+## Getting started
+
+Update your checkout, read [AGENTS.md](AGENTS.md) and use a working branch.
 
 ```bash
-npm install
-# valida o Rust no host (sem toolchain mobile):
-cargo check --manifest-path src-tauri/Cargo.toml
-# Android (precisa Android SDK/NDK + JDK 17):
-npm run tauri android init && npm run tauri android dev
-# iOS (precisa macOS + Xcode):
-npm run tauri ios init && npm run tauri ios dev
+npm ci --no-audit --no-fund
+npm run build
+npm run prova:bump
+npm run prova:icones
+cargo test --locked --manifest-path src-tauri/Cargo.toml
 ```
 
-## Arquitetura
+Host checks cover shared Rust and document rules. Native mobile code needs its
+own toolchain/device checks; see [Development](docs/development.md).
 
-Shell fino: a WebView navega o FQDN real; o **servidor Laravel é a fonte da
-verdade** (dados, auth por **cookie de sessão same-origin**). Nenhum banco nem
-segredo moram no cliente. Links externos (fora dos hosts do servidor — `SERVER_HOSTS` em `src-tauri/src/lib.rs`) abrem no
-navegador do SO. Tarja "Sistema Offline" injetada em cada página.
+## Documentation
 
-## Produção / lojas
+The [documentation index](docs/README.md) separates the current handbook from
+dated store records, ADRs and the unfinished [roadmap](.continue/escopo-mobile.md).
 
-Reusa a **infra da Blue3** (que já publica o app Flutter `BLUE3-INTRANET-MOBILE`):
-Apple Developer **Team ID `S65UBCTPN5`**, Google Play Console, custódia de keystore.
-Bundle ID **`cloud.blue3.shvia`** (mesmo do desktop). Detalhes e fases no roadmap.
+- [Current architecture and features](docs/current-state.md)
+- [Development and validation](docs/development.md)
+- [Web, Desktop and Workspace integration](docs/integration.md)
+- [Build, signing and stores](docs/operations.md)
+- [Device smoke test](docs/smoke-test.md)
+- [Shield assets and icon checks](docs/brand.md)
 
-## Product identity
-
-See [Portal artwork and regeneration](docs/brand.md).
+Related repositories:
+[Web](https://github.com/samirhvbr/shvia-web),
+[Desktop](https://github.com/samirhvbr/shvia-desktop) and
+[Workspace](https://github.com/samirhvbr/shvia-workspace).

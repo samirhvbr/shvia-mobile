@@ -1,5 +1,10 @@
 # Ficha da App Store — ShvIA (cloud.blue3.shvia)
 
+> **Historical draft — reviewed 15 October 2026.** Do not paste this August copy unchanged.
+> Its organization-only/no-public-sign-up claims conflict with the later
+> [App Review Notes](app-review-notes.md). Recheck the current product, privacy
+> statements and store requirements using [Operations](operations.md).
+
 > Rascunho pronto-para-colar dos campos do App Store Connect (04/08/2026).
 > Fundamentado no produto real: shell Tauri do `ai.shvia.org` com Face ID,
 > push (APNs), câmera/mic e tela offline nativa. Ajuste o tom à vontade —

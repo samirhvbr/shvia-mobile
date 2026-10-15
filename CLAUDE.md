@@ -1,7 +1,8 @@
 # ShvIA Mobile — Instruções para Claude Code
 
 > **Leia também:** [README.md](README.md) · [.continue/escopo-mobile.md](.continue/escopo-mobile.md)
-> (roadmap M0–M5) · [docs/decisoes.md](docs/decisoes.md) (ADRs).
+> (roadmap M0–M5) · [docs/decisoes.md](docs/decisoes.md) (ADRs) ·
+> [Current handbook](docs/README.md) (implementation and operation).
 >
 > `AGENTS.md` e `CLAUDE.md` são o MESMO texto abaixo do H1 — editou um, edite o outro.
 > O teste `agents_e_claude_sao_espelho` reprova a divergência (achado F-21).
@@ -60,15 +61,17 @@ nova capacidade de runtime/IPC; **X** = estável. Proibido `feat:`/`fix:`/`chore
 
 - **Tauri 2** (Rust) + WebView nativo do SO. Casca web mínima (Vite/TS).
 - `npm run tauri android dev` · `npm run tauri ios dev` (no Mac) · `cargo check`
-  (host) · `npm run tauri [android|ios] init` (gera `src-tauri/gen/*`).
+  (host). Native projects are already versioned: use `init` only for an intentional
+  regeneration and review the invariants in [Operations](docs/operations.md).
 
 ---
 
 ## Servidor remoto é a fonte da verdade
 
-Nenhum banco/segredo no cliente. Auth = **cookie de sessão same-origin** (a WebView
-navega o FQDN real; o login é a tela do próprio ShvIA). Chaves de assinatura/keystore
-vivem em secrets/custódia, **nunca** versionadas.
+No application database or server/provider signing key is bundled. Device data still
+includes WebView cookies/storage, the biometric preference and exported/staged files.
+Authentication uses the same-origin session cookie; biometrics are a separate local gate.
+Signing keys/keystores stay outside Git. See [Current state](docs/current-state.md).
 
 ---
 

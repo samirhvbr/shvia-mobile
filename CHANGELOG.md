@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.9 - The mobile handbook describes the current shell and its delivery boundaries
+
+The README still described July's publication work and called the APNs client unbuilt,
+although native push, resume lock, GitHub sign-in and file export already exist. The
+handbook now covers current architecture, platform limits, development, Web/Workspace
+integration and store delivery. The device checklist covers those native flows and
+records evidence per build instead of treating historical checkboxes as current acceptance.
+
+Older submission instructions, store copy, ADRs and roadmap snapshots remain available
+with dated notices. Repository policy requires a documentation version bump; its carriers
+are synchronized. No application logic, store account, signing credential or release is
+changed by this PR.
+
 ## 0.7.8 - The app icons come from the Shield identity approved on 27/09, not the Portal
 
 Asked "is the icon right?" at the Transporter, with the 0.7.7 IPA ready to deliver, the answer was: it was
