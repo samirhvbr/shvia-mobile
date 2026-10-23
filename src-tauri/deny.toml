@@ -26,51 +26,33 @@ feature-depth = 1
 [advisories]
 version = 2
 ignore = [
-    # ── Tauri's GTK3 tree on Linux: unmaintained, no safe upgrade ───────────
-    #
-    # All ten come from `tauri` → `tray-icon`/`libappindicator` → `gtk 0.18`, and every
-    # advisory says "No safe upgrade is available!". They leave when Tauri moves to gtk4,
-    # which is not a decision this repository can take on its own.
-    #
-    # They are `unmaintained`, not `vulnerability`: nobody has reported a flaw, the crates
-    # simply stopped being updated.
-    { id = "RUSTSEC-2024-0411", reason = "gdkwayland-sys — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0412", reason = "gdk — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0413", reason = "atk — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0414", reason = "gdkx11-sys — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0415", reason = "gtk — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0416", reason = "atk-sys — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0417", reason = "gdkx11 — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0418", reason = "gdk-sys — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0419", reason = "gtk3-macros — Tauri's GTK3 tree; no safe upgrade" },
-    { id = "RUSTSEC-2024-0420", reason = "gtk-sys — Tauri's GTK3 tree; no safe upgrade" },
+    # The ten GTK3 entries (RUSTSEC-2024-0411..0420) left on 23/10/2026: RustSec WITHDREW those
+    # advisories on 2026-08-14 and cargo-deny reported each ignore as advisory-not-detected.
+    # An ignore that matches nothing reads as a decision and guards nothing.
 
     # ── Compile-time only ──────────────────────────────────────────────────
     # `proc-macro-error` runs during compilation and ships no runtime code.
     { id = "RUSTSEC-2024-0370", reason = "proc-macro-error — unmaintained, compile-time only, pulled by Tauri's macro crates" },
 
-    # `unic-*` are Unicode tables reached through Tauri's identifier handling. Unmaintained,
-    # no reported flaw, and no upgrade path that does not go through Tauri.
-    { id = "RUSTSEC-2025-0075", reason = "unic-char-range — unmaintained, via Tauri" },
-    { id = "RUSTSEC-2025-0080", reason = "unic-common — unmaintained, via Tauri" },
-    { id = "RUSTSEC-2025-0081", reason = "unic-char-property — unmaintained, via Tauri" },
-    { id = "RUSTSEC-2025-0098", reason = "unic-ucd-version — unmaintained, via Tauri" },
-    { id = "RUSTSEC-2025-0100", reason = "unic-ucd-ident — unmaintained, via Tauri" },
+    # The five `unic-*` ignores (RUSTSEC-2025-0075/0080/0081/0098/0100) left on 23/10/2026 for the
+    # same reason: Tauri no longer pulls those crates, cargo-deny reported advisory-not-detected.
 
-    # ── A real vulnerability we cannot close alone, with the measurement ────
-    #
-    # 🔴 quick-xml 0.38.4 — two DoS advisories in the XML parser. It DOES ship in the binary
-    # (tauri → plist → quick-xml, a normal dependency, not build-only — checked with
-    # `cargo tree -i quick-xml -e normal`).
-    #
-    # It cannot be fixed here: the fix is >= 0.41, and `plist 1.8.0` requires `^0.38`, so
-    # `cargo update -p quick-xml` locks zero packages. It leaves when Tauri bumps plist.
-    #
-    # What bounds it: `plist` parses Apple property lists, and in Tauri that is the app's own
-    # bundle metadata. No code in this repository feeds it XML from a user, a document or the
-    # network. Re-check with `cargo tree -i quick-xml` if that ever changes.
-    { id = "RUSTSEC-2026-0194", reason = "quick-xml — DoS; fix needs plist>=? via Tauri; only parses our own bundle plist" },
-    { id = "RUSTSEC-2026-0195", reason = "quick-xml — DoS; same tree, same bound" },
+    # quick-xml (RUSTSEC-2026-0194/0195, two DoS in the XML parser) left on 23/10/2026: this block
+    # said "cannot be fixed here, `plist 1.8.0` requires `^0.38`", and that had gone stale.
+    # `cargo update -p plist` takes plist 1.10.3, which accepts the patched quick-xml 0.42.0, so the
+    # vulnerability is closed in Cargo.lock instead of accepted (the desktop repository measured
+    # the same on its own tree).
+
+    # ── zbus_names / zvariant / zvariant_derive: unmaintained, merged into zbus 6 (16/10/2026) ──
+    # No flaw is reported; the standalone crates stopped being maintained. The only path is
+    # `tauri-plugin-opener` → `zbus` 5.16, and it is compiled for the desktop Linux target ONLY:
+    # `cargo tree -i zbus_names --target aarch64-apple-ios` and `--target aarch64-linux-android`
+    # both print "nothing to print" (measured 23/10/2026), so neither shipped mobile build carries
+    # it. It is in the graph because cargo-deny walks every target. Re-check when the opener plugin
+    # takes zbus 6; this block goes with it.
+    { id = "RUSTSEC-2026-0370", reason = "zvariant — unmaintained (merged into zbus 6), no flaw reported, desktop-Linux-only via tauri-plugin-opener; absent from the iOS and Android graphs" },
+    { id = "RUSTSEC-2026-0371", reason = "zbus_names — unmaintained (merged into zbus 6), no flaw reported, desktop-Linux-only via tauri-plugin-opener; absent from the iOS and Android graphs" },
+    { id = "RUSTSEC-2026-0372", reason = "zvariant_derive — unmaintained (merged into zbus 6), no flaw reported, desktop-Linux-only via tauri-plugin-opener; absent from the iOS and Android graphs" },
 ]
 
 [licenses]

@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.7.10 - Close the quick-xml advisories by taking plist 1.10, and keep the zbus ones with the reason written: `cargo deny` is green again
+
+The `Advisories` job has been red on `master` since 22/10/2026. RustSec published three
+"unmaintained" notices (RUSTSEC-2026-0370/-0371/-0372) for `zvariant`, `zbus_names` and
+`zvariant_derive`, which were merged into `zbus` 6. Measured 23/10/2026 with `cargo deny check
+advisories`, the command the workflow runs; those three were the only errors.
+
+- **`zbus` family: ignored, with the measurement in `deny.toml`.** The only path is
+  `tauri-plugin-opener` → `zbus` 5.16, and it is compiled for desktop Linux only:
+  `cargo tree -i zbus_names --target aarch64-apple-ios` and `--target aarch64-linux-android` print
+  nothing, so neither shipped mobile build carries it. It shows up because cargo-deny walks every
+  target. The entry says when to re-check (the opener plugin on zbus 6).
+- **`quick-xml` (RUSTSEC-2026-0194/-0195, two DoS): fixed instead of ignored.** The old note said
+  "cannot be fixed here, `plist 1.8.0` requires `^0.38`", and that had gone stale: `cargo update
+  -p plist` takes plist 1.10.3, which accepts the patched quick-xml 0.42.0 (the desktop repository
+  measured the same on its own tree). `quick-xml` ships in the binary (`tauri → plist`), so this
+  closes a vulnerability that was being accepted; only `Cargo.lock` moves, two packages.
+- **Fifteen stale ignores removed.** The ten GTK3 entries (RUSTSEC-2024-0411..0420, withdrawn by
+  RustSec on 2026-08-14) and the five `unic-*` ones matched no crate and cargo-deny reported each
+  as `advisory-not-detected`; an ignore that matches nothing reads as a decision and guards nothing.
+  What remains is `proc-macro-error` (compile-time only) and the three `zbus` entries.
+- `.github/workflows/ci.yml` said `deny.toml` "carries SIXTEEN exceptions" and an unfixable
+  `quick-xml`; both statements were false after this change, so the comment is corrected in the
+  same commit.
+
+`cargo deny check advisories` is clean; `cargo test --locked` (21 passed) and `cargo clippy
+--all-targets --locked -- -D warnings` pass locally; `npm run prova:bump` agrees on 0.7.10.
+`cargo deny check licenses` still fails on the two crates of this repository themselves
+("unlicensed"); the workflow runs only `check advisories`, so that is a separate change.
+
 ## 0.7.9 - The mobile handbook describes the current shell and its delivery boundaries
 
 The README still described July's publication work and called the APNs client unbuilt,
