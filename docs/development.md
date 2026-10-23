@@ -23,6 +23,7 @@ carriers, so review its diff. `prova:bump` checks without writing. The icon chec
 verifies the Shield seal; do not re-seal unexpected differences to make it pass.
 
 Rust tests cover navigation, return paths/picker suppression, names/base64,
+exclusive iOS export staging and overlapping requests using temporary files,
 capabilities, iOS project invariants, the agent-document mirror and doc reachability.
 Host tests do not execute Face ID, Swift APNs, Android document providers or a
 hosted conversation. Android CI separately builds one arm64 debug APK and reads
