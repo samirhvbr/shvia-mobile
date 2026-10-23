@@ -5,11 +5,10 @@
 # Compilar para Android/iOS em CI é caro e exige SDK, keystore e provisioning — decisão de
 # infraestrutura à parte. O que este workflow faz é o barato que ninguém estava fazendo:
 #
-#  · `cargo deny check advisories` — o `src-tauri/deny.toml` deste repo carrega DEZESSEIS
-#    exceções documentadas (a árvore GTK3 do Tauri, sem upgrade seguro) e uma real que não
-#    se fecha aqui (`quick-xml`, preso pelo `plist` do Tauri). Sem esta porta, a próxima
-#    advertência entra sem ninguém ver — foi exatamente assim que o `time = "=0.3.41"`
-#    ficou com a RUSTSEC-2026-0009;
+#  · `cargo deny check advisories` — `src-tauri/deny.toml` carries the documented exceptions
+#    (a compile-time-only `proc-macro-error`, and the `zbus` crates that exist only in the
+#    desktop-Linux graph). Without this gate the next advisory enters unseen, which is exactly how
+#    `time = "=0.3.41"` ended up carrying RUSTSEC-2026-0009;
 #  · `cargo test` + `cargo clippy -D warnings` e `cargo check` do `src-tauri` no alvo
 #    host, que pega erro de compilação sem pagar o
 #    empacotamento móvel;
