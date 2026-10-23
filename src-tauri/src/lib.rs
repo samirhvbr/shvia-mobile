@@ -20,6 +20,9 @@ use std::sync::Mutex;
 use tauri::{webview::PageLoadEvent, Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_opener::OpenerExt;
 
+#[cfg(any(target_os = "ios", test))]
+mod ios_export;
+
 use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(target_os = "ios")]
 use tauri_plugin_shvia_push::ShviaPushExt;
@@ -216,7 +219,8 @@ async fn salvar_arquivo<R: tauri::Runtime>(
 ///   opens it for writing.
 /// - **iOS:** the plugin's save dialog EXPORTS a file that already exists in the app's
 ///   Documents under the suggested name (it creates an empty one otherwise). So the bytes are
-///   written there first, exported, and the staged copy removed.
+///   staged with exclusive creation, exported, and the staged copy removed. An existing
+///   document or an already active export is refused before opening another sheet.
 fn gravar_onde_escolher<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     nome: &str,
@@ -226,14 +230,14 @@ fn gravar_onde_escolher<R: tauri::Runtime>(
 
     #[cfg(target_os = "ios")]
     {
-        let preparado = app
+        static EXPORTER: ios_export::Exporter = ios_export::Exporter::new();
+        let documents = app
             .path()
             .document_dir()
-            .map_err(|e| e.to_string())?
-            .join(nome);
-        std::fs::write(&preparado, bytes).map_err(|e| e.to_string())?;
-        let escolhido = app.dialog().file().set_file_name(nome).blocking_save_file();
-        let _ = std::fs::remove_file(&preparado);
+            .map_err(|e| e.to_string())?;
+        let escolhido = EXPORTER.with_staged_file(&documents, nome, bytes, || {
+            app.dialog().file().set_file_name(nome).blocking_save_file()
+        })?;
         Ok(Salvo {
             saved: escolhido.is_some(),
             path: escolhido.map(|_| nome.to_string()),
