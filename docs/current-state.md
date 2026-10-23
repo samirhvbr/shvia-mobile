@@ -90,9 +90,13 @@ file-size guard computed from the base64 length. Cancel returns `{saved:false,pa
 the suggested name rather than an Android provider URI. This is not Desktop's
 `spawn`/`send` bridge.
 
-iOS stages under that name in app Documents, opens the export sheet and attempts
-to remove staging afterward. Android writes decoded bytes to the chosen provider
-URI. Test both paths, cancellation and repeated names.
+iOS reserves that name in app Documents without replacing an existing file. A
+collision returns an error before opening the export sheet, preserving the existing
+document. Only one export may hold the native sheet at a time. Its staged file is
+removed after success or cancellation, and on a write failure. A file left by an
+interrupted process is treated as an existing file, not silently overwritten.
+Android writes decoded bytes to the chosen provider URI. Test both paths,
+cancellation and repeated names; host staging tests do not prove device acceptance.
 
 ## iOS notifications
 
