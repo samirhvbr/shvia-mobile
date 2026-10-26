@@ -31,7 +31,9 @@ Earlier iPhone/TestFlight use and a release build after the iOS 27 scene correct
 are dated repository records, not acceptance of each later build. Android has a
 debug-build CI workflow; compilation does not establish device acceptance. Store
 approval, currently installed versions, production APNs and Play distribution
-were **not inspected in the documentation review of 15 October 2026**.
+were **not inspected in the documentation review of 26 October 2026**. The source
+baseline is `93267dd` (0.7.10); the [current-state guide](docs/current-state.md#native-commands-navigation-and-downloads)
+also records the iOS export collision limitation and its pending fix.
 
 Remote Code belongs to the hosted Web/Workspace services. The phone does not run
 local Claude Code, Codex or SHVIA CLI processes. See
