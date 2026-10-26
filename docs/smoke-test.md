@@ -39,6 +39,13 @@ Per check: PASS / FAIL / NOT RUN, observed result, evidence and issue link.
 Android needs real permission prompts and document-provider export. CI's merged
 manifest checks do not execute these flows.
 
+For iOS exports, use disposable fixtures: 0.7.10 can overwrite and then remove an
+existing Documents file with the suggested name, including after cancellation.
+The [current-state note](current-state.md#native-commands-navigation-and-downloads)
+tracks the pending fix. After integration, verify preservation of existing files,
+repeated names, cancellation and concurrent export attempts on the candidate;
+host staging tests alone do not establish export-sheet behavior.
+
 ## Biometrics and lifecycle
 
 1. In a fresh test state with biometrics enrolled, enable the offer and authenticate.

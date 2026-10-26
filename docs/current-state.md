@@ -1,7 +1,7 @@
 # Current architecture and features
 
-Source review: 15 October 2026. This describes implementation, not a store account
-or a build currently installed on a phone.
+Source review: 26 October 2026, baseline `93267dd`, version **0.7.10**. This describes
+implementation, not a store account or a build currently installed on a phone.
 
 ## Runtime and ownership
 
@@ -91,8 +91,15 @@ the suggested name rather than an Android provider URI. This is not Desktop's
 `spawn`/`send` bridge.
 
 iOS stages under that name in app Documents, opens the export sheet and attempts
-to remove staging afterward. Android writes decoded bytes to the chosen provider
-URI. Test both paths, cancellation and repeated names.
+to remove staging afterward. In this baseline an existing document with the same
+name is overwritten during staging and removed afterward, even if the sheet is
+canceled. [PR #11](https://github.com/samirhvbr/shvia-mobile/pull/11) proposes exclusive
+staging and one active export; it was still open on 26 October 2026 and is not part
+of 0.7.10. Use disposable documents for collision/cancellation tests. Acceptance
+of the export sheet on a real device remains necessary after the fix is integrated.
+
+Android writes decoded bytes to the chosen provider URI. Test that provider path
+separately; the pending iOS staging change does not implement Android behavior.
 
 ## iOS notifications
 

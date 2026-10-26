@@ -16,11 +16,17 @@ npm run prova:bump
 npm run prova:icones
 cargo test --locked --manifest-path src-tauri/Cargo.toml
 cargo clippy --all-targets --locked --manifest-path src-tauri/Cargo.toml -- -D warnings
+(cd src-tauri && cargo deny check advisories)
 ```
 
 The build type-checks/bundles the startup page; `prebuild` also synchronizes version
 carriers, so review its diff. `prova:bump` checks without writing. The icon check
 verifies the Shield seal; do not re-seal unexpected differences to make it pass.
+
+The advisory check requires the `cargo-deny` tool and is also a CI gate. Run it from
+`src-tauri` so it reads [deny.toml](../src-tauri/deny.toml), including the documented
+exceptions. A passing result means the graph satisfies that policy; it does not
+mean there are no exceptions or that every mobile dependency was exercised.
 
 Rust tests cover navigation, return paths/picker suppression, names/base64,
 capabilities, iOS project invariants, the agent-document mirror and doc reachability.
@@ -28,6 +34,11 @@ Host tests do not execute Face ID, Swift APNs, Android document providers or a
 hosted conversation. Android CI separately builds one arm64 debug APK and reads
 its permissions; it uploads no artifact and covers no signed release/device.
 No checked-in workflow builds iOS.
+
+The [Android workflow](../.github/workflows/android.yml) filters automatic runs by
+app source, plugin, package and workflow paths. Changes limited to root Markdown
+files and `docs/` do not trigger its APK build; use its manual dispatch when native build evidence is
+needed. The general CI workflow has no equivalent path filter.
 
 ## Startup-page preview
 

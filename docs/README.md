@@ -1,6 +1,6 @@
 # ShvIA Mobile documentation
 
-The handbook describes the implementation reviewed on 15 October 2026. Source
+The handbook describes baseline `93267dd` (0.7.10), reviewed on 26 October 2026. Source
 inspection, automated checks, signing, installation, store approval and production
 delivery are separate kinds of evidence.
 

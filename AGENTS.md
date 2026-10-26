@@ -60,8 +60,10 @@ nova capacidade de runtime/IPC; **X** = estável. Proibido `feat:`/`fix:`/`chore
 ## Stack & comandos
 
 - **Tauri 2** (Rust) + WebView nativo do SO. Casca web mínima (Vite/TS).
-- `npm run tauri android dev` · `npm run tauri ios dev` (no Mac) · `cargo check`
-  (host). Native projects are already versioned: use `init` only for an intentional
+- `npm run tauri android dev` · `npm run tauri ios dev` (on macOS).
+- Host check from the repository root: `cargo check --locked --manifest-path src-tauri/Cargo.toml`.
+  See [Development](docs/development.md) for tests, Clippy and the advisory gate.
+  Native projects are already versioned: use `init` only for an intentional
   regeneration and review the invariants in [Operations](docs/operations.md).
 
 ---
