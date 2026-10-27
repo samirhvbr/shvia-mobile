@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.7.12 - Keep the biometric lock closed when biometrics are unavailable
+
+An external review (26/10/2026) found that, with the lock on, `biometricGate` let the app through when
+`checkStatus()` threw or reported biometrics unavailable. On iOS "unavailable" includes a lockout, so
+someone holding an unlocked phone could fail Face ID five times, relaunch, and open the ShvIA session
+with no prompt. `docs/current-state.md` listed it as a limitation.
+
+The gate's decision now lives in `src/trava.ts`. With the lock on, a lockout, removed biometrics or a
+failed status query inside the shell all ask, and the prompt is the device passcode
+(`allowDeviceCredential`, already passed). A device with no passcode at all cannot be locked, and the
+app lets the person in, by the owner's decision of 27/10/2026. That covers `passcodeNotSet` in the
+status, and `passcodeNotSet` / `noDeviceCredential` from the prompt.
+
+Tests: `npm run prova:trava` (new; 14 cases of the decision, run by CI). Not verified here: the gate
+needs device acceptance on iOS and Android (`docs/smoke-test.md` §Biometrics, step 3). The version
+skips 0.7.11, which open pull request #11 claims.
+
 ## 0.7.10 - Close the quick-xml advisories by taking plist 1.10, and keep the zbus ones with the reason written: `cargo deny` is green again
 
 The `Advisories` job has been red on `master` since 22/10/2026. RustSec published three

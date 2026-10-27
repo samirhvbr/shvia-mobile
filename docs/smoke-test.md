@@ -46,8 +46,11 @@ manifest checks do not execute these flows.
    user's real app data for testing.
 2. With the lock enabled, cold-start and background/foreground; the gate asks again.
    Cancel/fail/retry; disabling after failure requires authentication.
-3. Test supported device-credential fallback and unavailable/failed status queries.
-   The current implementation can proceed without a gate in those latter cases.
+3. Test the device-credential fallback with the lock on (0.7.12). Fail Face ID until
+   it locks out, relaunch: the gate must ask for the iPhone passcode and stay closed
+   without it. Remove the enrolled biometrics in Settings, relaunch: same. On Android,
+   do the same with the fingerprint and the screen-lock PIN. Turn the device passcode
+   off entirely, relaunch: the app goes in (no lock is possible there).
 4. Return from a file picker with a selection and after cancellation; the one-resume
    exception should preserve the result. Then background normally and verify relock.
 5. Verify the intended path returns after unlock; record draft/state loss because

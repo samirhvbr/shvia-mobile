@@ -66,9 +66,15 @@ the mark and skips the gate to preserve picker results. This is a heuristic,
 not proof that the resume came from the picker.
 
 Limits: declining the initial offer is remembered and no general settings screen
-here re-enables it. Unavailable biometrics or a failed status query proceeds
-without an active gate. Test these cases before requiring this gate as an
-organizational security control.
+here re-enables it. Since 0.7.12, with the lock on, biometrics that are unavailable
+(a Face ID lockout, biometrics removed) or a failed status query no longer let the
+app through: the gate asks for the device passcode (`allowDeviceCredential`). Until
+then both cases proceeded without a gate, so someone holding an unlocked phone could
+fail Face ID into a lockout and open ShvIA (external review, 26/10/2026). The one
+exception is a device with no passcode at all: no lock is possible there, and the
+app lets the person in, by the owner's decision of 27/10/2026. The decision is
+`src/trava.ts`, checked by `npm run prova:trava`. Device acceptance on iOS and
+Android is still required.
 
 ## Native commands, navigation and downloads
 

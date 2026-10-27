@@ -80,3 +80,8 @@ jobs:
       # com o Portal indo na 0.7.7 uma semana depois da aprovação do Shield.
       - name: Ícones numa só identidade
         run: npm run prova:icones
+
+      # The biometric gate's decision (src/trava.ts), case by case: with the lock on, a lockout or a
+      # failed status query asks for the device passcode instead of letting the app through (0.7.12).
+      - name: Trava biométrica
+        run: npm run prova:trava
