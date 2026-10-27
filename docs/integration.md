@@ -59,11 +59,13 @@ listens for `shvia:push-token` and calls `POST /push/token` with cookie/CSRF. It
 logout flow attempts `DELETE /push/token`; network failure/server cleanup is a
 Web operational concern.
 
-Normal page-load injection is restricted to ShvIA hosts. The asynchronous token
-callback is a separate delivery path; tap routes act on the current page. Host
-tests and this review do not establish origin/lifecycle behavior during OAuth,
-logout or the biometric gate. Include those situations in device acceptance
-before making stronger isolation claims.
+Normal page-load injection is restricted to ShvIA hosts. Since 0.7.13 the
+asynchronous token callback goes through the same filter: it evaluates the token
+only when the webview is on a ShvIA page, and otherwise leaves it stored for the
+next ShvIA load. Before that it evaluated into whatever page was current, GitHub's
+sign-in included (external review, 26/10/2026). Tap routes still act on the current
+page. Host tests check the filter in source; device acceptance during OAuth, logout
+and the biometric gate is still required.
 
 The [server APNs contract](https://github.com/samirhvbr/shvia-web/blob/master/docs/PUSH/PUSH-APNS-20260716.md)
 owns provider credentials. The phone needs its signed push entitlement, user

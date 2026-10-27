@@ -510,8 +510,15 @@ pub fn run() {
                                 if let Some(js) = push_token_js(tok) {
                                     *handle.state::<PushToken>().0.lock().unwrap() =
                                         Some(tok.to_string());
+                                    // Only into a ShvIA page, like the page-load injection
+                                    // (`recebe_script_da_casca`). The token arrives on its own
+                                    // schedule and could land while GitHub's sign-in is on screen
+                                    // (external review, 26/10/2026). It is stored above, so the
+                                    // next ShvIA load injects it anyway.
                                     if let Some(w) = handle.get_webview_window("main") {
-                                        let _ = w.eval(js);
+                                        if w.url().is_ok_and(|u| recebe_script_da_casca(&u)) {
+                                            let _ = w.eval(js);
+                                        }
                                     }
                                 }
                             }
@@ -733,6 +740,8 @@ mod tests {
             .expect("o módulo de testes fica no fim do arquivo");
         assert!(codigo.contains("} else if recebe_script_da_casca(payload.url()) {"));
         assert!(codigo.contains("if is_internal(url) || e_login_do_github(url) {"));
+        // The push token's own delivery (iOS) goes through the same filter as the page load.
+        assert!(codigo.contains("if w.url().is_ok_and(|u| recebe_script_da_casca(&u)) {"));
     }
 
     #[test]

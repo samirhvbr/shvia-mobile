@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.13 - Deliver the asynchronous push token only to ShvIA pages
+
+The page-load injection is limited to ShvIA hosts (`recebe_script_da_casca`), but the iOS APNs token
+callback evaluated `window.__shviaPushToken = …` into whatever page was on screen, GitHub's sign-in
+included, since that one arrives on its own schedule (external review, 26/10/2026). An APNs device
+token alone grants nothing, but the shell's own rule (0.7.1) is that GitHub's pages get nothing. The
+callback now goes through the same filter. The token stays stored, and the next ShvIA load injects it.
+
+Tests: the source check `a_injecao_e_a_navegacao_passam_pelos_filtros` now covers the token callback.
+The iOS-only code compiles only on macOS, so it was not compiled here.
+
 ## 0.7.12 - Keep the biometric lock closed when biometrics are unavailable
 
 An external review (26/10/2026) found that, with the lock on, `biometricGate` let the app through when
