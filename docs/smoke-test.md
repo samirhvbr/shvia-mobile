@@ -39,6 +39,14 @@ Per check: PASS / FAIL / NOT RUN, observed result, evidence and issue link.
 Android needs real permission prompts and document-provider export. CI's merged
 manifest checks do not execute these flows.
 
+For iOS export, use disposable files in a test app container. Place an existing
+document under the suggested export name: the command must report a collision
+without opening a sheet or changing that document. With a free name, verify the
+exported contents and suggested name, cancellation cleanup, and another export
+after the sheet closes. A second request while the first sheet is open must fail
+without replacing the first sheet or its contents. Host tests cover the staging
+filesystem and guard; these native observations still need the candidate build.
+
 ## Biometrics and lifecycle
 
 1. In a fresh test state with biometrics enrolled, enable the offer and authenticate.

@@ -25,8 +25,25 @@ app lets the person in, by the owner's decision of 27/10/2026. That covers `pass
 status, and `passcodeNotSet` / `noDeviceCredential` from the prompt.
 
 Tests: `npm run prova:trava` (new; 14 cases of the decision, run by CI). Not verified here: the gate
-needs device acceptance on iOS and Android (`docs/smoke-test.md` §Biometrics, step 3). The version
-skips 0.7.11, which open pull request #11 claims.
+needs device acceptance on iOS and Android (`docs/smoke-test.md` §Biometrics, step 3).
+
+## 0.7.11 - Preserve existing documents when staging an iOS export
+
+iOS export wrote to Documents/<suggested-name> before opening the save sheet and
+removed that path afterward. An existing document with that name was overwritten
+and then deleted even when the user cancelled the export.
+
+Reserve the staging file with exclusive creation and refuse a collision before
+opening the sheet. A guard removes only the reserved staging path after the dialog
+returns or a write fails. Refuse overlapping exports: the dialog plugin has one
+pending picker callback, which a second export must not replace. The suggested
+name and official dialog API remain unchanged; Android is unchanged.
+
+Host tests use real temporary files to cover existing-document preservation,
+success/cancellation cleanup, repeated names, overlapping requests and recovery
+after a staging error. The collision regression failed with the previous staging
+behavior. Native sheet presentation, provider output and device lifecycle still
+require the candidate-build checks in docs/smoke-test.md; no store upload is included.
 
 ## 0.7.10 - Close the quick-xml advisories by taking plist 1.10, and keep the zbus ones with the reason written: `cargo deny` is green again
 
