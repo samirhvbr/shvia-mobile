@@ -1,7 +1,8 @@
 # Build, signing and store operations
 
-Source-based procedure, 15 October 2026. It does not report live App Store Connect,
-Google Play, signing accounts, APNs or installed builds. Earlier measurements
+Source-based procedure, 15 October 2026, rechecked against `master` at 0.7.14 on
+5 November 2026. It does not report live App Store Connect, Google Play, signing
+accounts, APNs or installed builds. Earlier measurements
 remain in [publication history](testflight-checklist.md) and
 [App Review Notes](app-review-notes.md).
 
@@ -27,6 +28,15 @@ The [Release workflow](../.github/workflows/release.yml) publishes a GitHub tag/
 Release when a version change reaches `master`/`main`. A feature PR does not
 trigger it. A GitHub Release is separate from an IPA/APK build, store upload,
 approval, deployment and installed acceptance.
+
+A Release run that never starts (for example, when the account cannot run hosted
+jobs) leaves that version without a tag. Compare `gh release list` with
+`version.md` on `master`. [tools/release.sh](../tools/release.sh) is idempotent:
+`./tools/release.sh --dry-run` prints what is missing, `./tools/release.sh`
+publishes the current version (marked `Latest` when it creates it), and
+`--backfill` walks the history oldest first. A version that already has a Release
+is skipped; this copy of the script does not move the `Latest` badge of an
+existing Release. Publishing is a deliberate act; the dry run is always safe.
 
 ## Generated project invariants
 

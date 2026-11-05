@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.15 - The operations guide shows how to find and publish a version the Release workflow missed
+
+The Release run for 0.7.11 on 27/10/2026 never started (zero steps; the hosted
+runner refused the job), and on 05/11/2026 the newest GitHub Release is still
+0.7.10, with no `0.7.11` tag. Nothing in `docs/operations.md` said how to notice
+or repair that. It now says to compare `gh release list` with `version.md` on
+`master`, and documents `tools/release.sh`'s dry run, current and backfill modes.
+
+It also records what this copy of the script does with an existing Release: it
+skips it, and marks `Latest` only on a Release it creates. The fleet block in
+AGENTS.md says the script moves a drifted badge back; this one does not. Nothing
+was published by this change. Documentation only.
+
 ## 0.7.15 - The README and the operations guide list prova:trava and prova:push with the checks CI runs
 
 PR #13 added two npm checks to CI and left the lists of commands as they were:
