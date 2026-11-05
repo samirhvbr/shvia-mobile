@@ -23,6 +23,7 @@ Per check: PASS / FAIL / NOT RUN, observed result, evidence and issue link.
 | Check | Expected observation |
 |---|---|
 | Cold start | Shield splash/version, then hosted Web without a native error page |
+| Version display | Splash shows `v<shell>`; Web's top bar shows `v<web> · app <shell>`, matching the evidence record |
 | Offline startup | Retry and "Abrir mesmo assim" respond; restored network triggers retry |
 | Network loss in Web | Offline probe/recovery UI; reconnect/reload without duplicate banners |
 | Login/restart/logout | Intended cookie/account persists; logout removes access |
