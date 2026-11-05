@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.7.15 - The development guide lists every automated check the repository runs
+
+`docs/development.md` described `cargo test` and the npm rulers but not the rest of
+what guards a change here:
+
+- the `commit-msg` and `pre-push` hooks in `tools/git-hooks`, and the one-time
+  `git config core.hooksPath tools/git-hooks` that enables them;
+- `cargo deny check advisories`, which CI runs, with its local command (run on
+  05/11/2026 with cargo-deny 0.20.2: `advisories ok`);
+- the source checks the Rust suite already holds: the Android manifest, Android
+  resource XML comments, SHA-pinned workflow actions, the `saveFile` argument
+  names, and the iOS push-token script's wrapper and the filter on its callback;
+- the two npm checks PR #13 added to CI, `prova:trava` and `prova:push`, in the
+  command block and the CI row, with the Node.js 22.6 floor that
+  `--experimental-strip-types` puts under the first;
+- a table of the three workflows and their triggers. The jobs name
+  `ubuntu-latest` directly, so the fleet's `CI_RUNNER` variable described in
+  AGENTS.md has no effect in this repository.
+
+The Intel-simulator line is marked unverified (`project.yml` pins
+`ARCHS: [arm64]`), and `prova:bump`'s skip line for the untracked Android
+`tauri.properties` is called expected. Documentation only.
+
 ## 0.7.15 - The handbook is rechecked against the 0.7.14 shell
 
 First read against `master` at 0.7.11 (`611e1d3`) on 05/11/2026, with shvia-web
