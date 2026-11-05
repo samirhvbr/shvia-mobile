@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.7.15 - The Release notes of a version collect every CHANGELOG section it has, not only the first
+
+`tools/release.sh` took a version's notes from the first heading that began with it
+and stopped at the next heading of the same level, so a version delivered in blocks
+showed only its newest section: the published 0.7.8 Release carries the icon note and
+not the seal and CI step that shares its version, and the published 0.7.14 Release
+carries the biometric-prompt note and not the push-token one. This version has several
+sections too, as do 0.6.19, 0.6.24, 0.7.6, 0.7.7 and 0.7.8. The match was also by
+prefix, so asking for 0.7.1 returned the section of the newest `0.7.1x` heading.
+`notes_for` now keeps every contiguous section whose heading names the whole version,
+each with its heading when there is more than one, and a version with one section
+prints what it always printed. `docs/operations.md` says what the notes are.
+
+Checked by running the shipped `notes_for`, old and new, over every version in this
+CHANGELOG, on macOS awk, mawk 1.3.4 (20250131) and busybox awk, with identical output:
+the 28 single-section versions (and one that is absent) print the same bytes; 0.6.19,
+0.6.24, 0.7.6, 0.7.7, 0.7.8, 0.7.14 and this version print all their sections; 0.7.1
+prints its own. Releases already published are not touched: 0.7.14 keeps the short
+notes it was published with. Only this repository's copy of the script changes here.
+
 ## 0.7.15 - The resume comment in lib.rs names sceneWillEnterForeground, the callback tao 0.37.1 uses in scene mode
 
 The comment above the mobile `Resumed` handler still said iOS's

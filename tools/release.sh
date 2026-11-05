@@ -102,6 +102,11 @@ BRANCH="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo master)"
 # Two heading shapes exist in this fleet, and both are matched:
 #   ## 1.1.0 - título
 #   ### `0.17.0` — 2026-08-24 — título
+#
+# A version delivered in blocks (several commits sharing it, ADR-003) has several
+# sections in the CHANGELOG, and all of them are its notes: one section prints its
+# body alone, as it always did; several print each heading and body, in file order.
+# The version must match whole: `0.7.1` is not `0.7.13`.
 notes_for() {
   local ver="$1" sha="$2" out="$3" body=""
   if [ -f CHANGELOG.md ]; then
@@ -112,17 +117,29 @@ notes_for() {
         return 0
       }
       # Does this heading name our version? Backticks are stripped because the
-      # fleet writes both `## 1.1.0 - x` and "### `0.17.0` - 2026-08-24 - x".
-      function is_ours(line,   s) {
+      # fleet writes both `## 1.1.0 - x` and "### `0.17.0` - 2026-08-24 - x". The
+      # character after the version must not continue a number: 0.7.1 is not 0.7.13.
+      function is_ours(line,   s, nxt) {
         s = line; sub(/^#+[ \t]*/, "", s); gsub(/`/, "", s)
-        return index(s, ver) == 1
+        if (index(s, ver) != 1) return 0
+        nxt = substr(s, length(ver) + 1, 1)
+        return (nxt == "" || nxt !~ /[0-9.]/)
       }
       { lv = hlevel($0)
-        if (!flag) { if (lv && is_ours($0)) { flag = 1; open_lv = lv } ; next }
+        if (!flag) { if (lv && is_ours($0)) { flag = 1; open_lv = lv; n = 1; head[1] = $0 } ; next }
         # Only a heading at the SAME level or higher ends the section — the
         # entry keeps its own ### subsections, which is where the substance is.
-        if (lv && lv <= open_lv) exit
-        print }
+        # A heading of that level that names the same version opens one more
+        # section of it: a delivery split into blocks carries one version in several.
+        if (lv && lv <= open_lv) {
+          if (lv == open_lv && is_ours($0)) { n++; head[n] = $0; next }
+          exit
+        }
+        body[n] = body[n] $0 "\n" }
+      END {
+        if (n == 1) { printf "%s", body[1]; exit }
+        for (i = 1; i <= n; i++) printf "%s\n%s", head[i], body[i]
+      }
     ' CHANGELOG.md)"
   fi
   if [ -z "$(printf '%s' "$body" | tr -d '[:space:]')" ]; then
