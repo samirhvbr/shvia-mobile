@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.14 - Exercise the actual biometric prompt during status failure
+
+The decision table alone did not prove that the screen obeyed it. The biometric ruler now also
+executes `biometricGate`, `runLock` and `authOpts` from the real TypeScript with a fake native plugin.
+For both a failed status query and biometric lockout, it verifies device-credential fallback,
+waiting for authentication, cancellation keeping the gate closed, and a successful retry preserving
+the lock preference. `prova:trava` passes 16 cases. This does not replace device acceptance.
+
 ## 0.7.14 - Recheck the push token destination when its script executes
 
 The native callback checks the current URL before scheduling token delivery, but navigation can
