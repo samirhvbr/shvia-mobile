@@ -5,6 +5,13 @@
 > its no-remote-command language predates ADR-005’s export-only command.
 > Use [Current state](current-state.md) and [Integration](integration.md) for the
 > current boundary. The iOS scene lifecycle also qualifies older resume-event wording.
+>
+> **Note — 5 November 2026.** Since the iOS scene manifest (0.7.7), ADR-002's
+> `applicationWillEnterForeground` reads as `sceneWillEnterForeground`, which tao
+> 0.37.1 maps to `WindowEvent::Resumed`. ADR-003's "item 7" of the smoke test is now
+> its "External link" row. The `../../../BLUE3/BLUE3-INTRANET-MOBILE/…` links point
+> into a private sibling checkout (`~/x/BLUE3/BLUE3-INTRANET-MOBILE`); they do not
+> resolve on GitHub.
 
 Formato ADR. Não relitigar direção já decidida dentro de um how-to — linkar o ADR.
 

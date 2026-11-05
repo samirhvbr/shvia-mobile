@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.15 - A November note in the ADRs qualifies three references that no longer read as written
+
+`docs/decisoes.md` gains a dated note under the existing implementation note:
+ADR-002's `applicationWillEnterForeground` reads as `sceneWillEnterForeground`
+since the 0.7.7 scene manifest (tao 0.37.1 maps it to `WindowEvent::Resumed`);
+ADR-003's "item 7" of the smoke test is now its "External link" row; and the
+`../../../BLUE3/BLUE3-INTRANET-MOBILE/…` links point into a private sibling
+checkout and do not resolve on GitHub. The ADR texts themselves are unchanged.
+Documentation only.
+
 ## 0.7.15 - The Claude Code profile README describes this repository's settings, not the desktop's
 
 `.claude/README.md` was titled "ShvIA Desktop" and named a Python sidecar this
