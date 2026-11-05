@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.15 - The README and the operations guide list prova:trava and prova:push with the checks CI runs
+
+PR #13 added two npm checks to CI and left the lists of commands as they were:
+`prova:trava` runs the biometric gate's decision table and then the real `biometricGate`,
+`runLock` and `authOpts` against a fake native plugin, and `prova:push` evaluates the
+push-token delivery function against stand-in page locations. The "Getting started" block
+of `README.md` and the iOS-candidate block of `docs/operations.md` now run both after
+`prova:icones`, as CI does. Documentation only.
+
 ## 0.7.15 - The development guide lists every automated check the repository runs
 
 `docs/development.md` described `cargo test` and the npm rulers but not the rest of

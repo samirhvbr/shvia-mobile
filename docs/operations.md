@@ -62,6 +62,8 @@ npm ci --no-audit --no-fund
 npm run version:sync
 npm run prova:bump
 npm run prova:icones
+npm run prova:trava
+npm run prova:push
 npm run tauri ios build -- --export-method app-store-connect
 ```
 
