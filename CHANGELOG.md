@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.15 - The operations guide flags Tauri's own Android versionCode formula
+
+`scripts/sync-version.mjs` writes `major*1_000_000 + minor*10_000 + patch*100` into
+`src-tauri/gen/android/app/tauri.properties`. The Tauri CLI writes the same file
+during Android builds, and its documented default (`AndroidConfig::version_code` in
+tauri-utils) is `major*1_000_000 + minor*1_000 + patch`: 71100 and 7011 for 0.7.11.
+Which value reaches an APK was not measured. `docs/operations.md` now says so and
+says to read the code from the artifact with `aapt2 dump badging` before an upload.
+No behaviour changed. Documentation only.
+
 ## 0.7.15 - The operations guide shows how to find and publish a version the Release workflow missed
 
 The Release run for 0.7.11 on 27/10/2026 never started (zero steps; the hosted
