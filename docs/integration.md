@@ -4,6 +4,13 @@ The mobile binary and hosted Web release independently. A server feature can
 appear without a mobile update; a native capability needs a new binary. Verify
 the deployed combination before promising it on a phone.
 
+`shvia-web` and `shvia-workspace` are private repositories: their links below
+open only for accounts with access. The Web behaviour named on this page (push
+token registration and logout cleanup, the `/up` health route,
+`Ponte.tem('saveFile')`, the shell-version tag) was rechecked at shvia-web
+`origin/master` 2.114.133 on 5 November 2026. That is source, not the deployed
+version.
+
 ## Ownership
 
 | Repository | Responsibility |
@@ -85,4 +92,6 @@ Microphone capture, server transcription, attachments and speech output combine
 Web UI with WebView support. Native permission declarations enable a request;
 they do not prove working recording, service health, camera or voices. Keyboard,
 project layout and touch controls largely belong to Web. Report both shell and
-Web versions so failures reach the right repository.
+Web versions so failures reach the right repository: inside the app, Web's top
+bar shows `v<web version> · app <shell version>`, and the splash shows the shell
+version alone.

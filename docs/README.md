@@ -1,8 +1,10 @@
 # ShvIA Mobile documentation
 
-The handbook describes the implementation reviewed on 15 October 2026. Source
-inspection, automated checks, signing, installation, store approval and production
-delivery are separate kinds of evidence.
+The handbook describes the implementation reviewed on 15 October 2026 and
+rechecked against `master` at 0.7.14 on 5 November 2026. Source inspection,
+automated checks, signing, installation, store approval and production delivery
+are separate kinds of evidence. Work in open pull requests is not described as
+shipped.
 
 ## Current handbook
 

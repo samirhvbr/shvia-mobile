@@ -17,6 +17,7 @@ identifies the shell; the hosted Web has its own version and release cycle.
 - Camera/microphone declarations for Web features and WebView speech output.
 - iOS APNs registration, foreground notifications and notification-tap routing.
 - Navigation rules for ShvIA, external links and a narrow GitHub sign-in exception.
+- The shell version on the splash and next to the Web version in Web's top bar.
 
 See the [feature matrix and contracts](docs/current-state.md) for platform limits.
 
@@ -31,7 +32,8 @@ Earlier iPhone/TestFlight use and a release build after the iOS 27 scene correct
 are dated repository records, not acceptance of each later build. Android has a
 debug-build CI workflow; compilation does not establish device acceptance. Store
 approval, currently installed versions, production APNs and Play distribution
-were **not inspected in the documentation review of 15 October 2026**.
+were **not inspected in the documentation reviews of 15 October and 5 November
+2026**.
 
 Remote Code belongs to the hosted Web/Workspace services. The phone does not run
 local Claude Code, Codex or SHVIA CLI processes. See
@@ -40,7 +42,8 @@ remote environments and the current server-side bridge.
 
 ## Getting started
 
-Update your checkout, read [AGENTS.md](AGENTS.md) and use a working branch.
+Update your checkout, read [AGENTS.md](AGENTS.md), use a working branch and
+enable the commit/push hooks with `git config core.hooksPath tools/git-hooks`.
 
 ```bash
 npm ci --no-audit --no-fund
@@ -66,6 +69,6 @@ dated store records, ADRs and the unfinished [roadmap](.continue/escopo-mobile.m
 - [Shield assets and icon checks](docs/brand.md)
 
 Related repositories:
-[Web](https://github.com/samirhvbr/shvia-web),
+[Web](https://github.com/samirhvbr/shvia-web) (private),
 [Desktop](https://github.com/samirhvbr/shvia-desktop) and
-[Workspace](https://github.com/samirhvbr/shvia-workspace).
+[Workspace](https://github.com/samirhvbr/shvia-workspace) (private).

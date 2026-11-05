@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.7.15 - The handbook is rechecked against the 0.7.14 shell
+
+First read against `master` at 0.7.11 (`611e1d3`) on 05/11/2026, with shvia-web
+`origin/master` 2.114.133 for the Web side. PR #13 then landed as 0.7.12–0.7.14, so
+the handbook was read again against `master` at 0.7.14 (`609302d`). What the code
+does and the handbook did not say:
+
+- `docs/current-state.md`: every ShvIA page load also receives
+  `window.__shviaShellVersion`, which Web appends to its top-bar version as
+  `· app X.Y.Z`; the bundled origin's whole permission set (`core:default`,
+  `opener:default`, `trava_biometrica`, `biometric:default`); the CSP as the third
+  place a new server host has to be added; the exact file-name cleaning; the offline
+  banner's non-2xx rule and tap-to-reload; tao 0.37.1 emitting `Resumed` from
+  `sceneWillEnterForeground`; the iOS orientations, the Android TV launcher entry
+  kept from the Tauri template and the debug-only cleartext setting; APNs
+  registration errors that only reach standard error.
+- `docs/integration.md`, `README.md`: shvia-web and shvia-workspace are private, so
+  their links open only for accounts with access; the Web behaviour this page cites
+  was rechecked at 2.114.133 (source, not the deployed version).
+- `docs/smoke-test.md`: a row for the two version displays the evidence record
+  relies on.
+- The review dates in `README.md`, `docs/README.md` and `docs/current-state.md`.
+
+PR #13 changed the biometric gate and the push-token delivery. Its own paragraphs
+(the gate's limits in `docs/current-state.md`, the push token in `docs/integration.md`,
+step 3 in `docs/smoke-test.md`) were read against the 0.7.14 code: the decision table and
+the passcode fallback in `src/trava.ts` and `src/main.ts`, and the two checks of the token
+delivery in `src-tauri/src/lib.rs` and `src-tauri/src/push_token.js`. They agree with it.
+One sentence changes: the asynchronous push path in `docs/current-state.md` now says it
+has its own URL and host checks. The check lists PR #13 left out are completed in the
+development guide, the README and the operations guide (separate entries of this
+version). Documentation only, apart from the version carriers. `cargo test --locked`,
+`npm run prova:bump`, `npm run prova:icones`, `npm run prova:trava` and
+`npm run prova:push` pass.
+
 ## 0.7.14 - Exercise the actual biometric prompt during status failure
 
 The decision table alone did not prove that the screen obeyed it. The biometric ruler now also
