@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.7.14 - Exercise the actual biometric prompt during status failure
+
+The decision table alone did not prove that the screen obeyed it. The biometric ruler now also
+executes `biometricGate`, `runLock` and `authOpts` from the real TypeScript with a fake native plugin.
+For both a failed status query and biometric lockout, it verifies device-credential fallback,
+waiting for authentication, cancellation keeping the gate closed, and a successful retry preserving
+the lock preference. `prova:trava` passes 16 cases. This does not replace device acceptance.
+
+## 0.7.14 - Recheck the push token destination when its script executes
+
+The native callback checks the current URL before scheduling token delivery, but navigation can
+finish before the queued JavaScript runs. The delivery function now checks the HTTPS protocol and
+ShvIA hostname in the page itself, on both callback and page-load delivery. Other origins receive
+neither the token nor the event; a later ShvIA load still receives the stored token.
+
+Validation: `prova:push` exercises the actual included delivery function for allowed hosts, OAuth,
+lookalike hosts, HTTP, the local shell, and navigation between the native check and evaluation. Rust
+tests verify that the generated script uses this function and the native host list, and rejects
+invalid token strings. Installed-device acceptance remains separate.
+
+## 0.7.13 - Deliver the asynchronous push token only to ShvIA pages
+
+The page-load injection is limited to ShvIA hosts (`recebe_script_da_casca`), but the iOS APNs token
+callback evaluated `window.__shviaPushToken = …` into whatever page was on screen, GitHub's sign-in
+included, since that one arrives on its own schedule (external review, 26/10/2026). An APNs device
+token alone grants nothing, but the shell's own rule (0.7.1) is that GitHub's pages get nothing. The
+callback now goes through the same filter. The token stays stored, and the next ShvIA load injects it.
+
+Tests: the source check `a_injecao_e_a_navegacao_passam_pelos_filtros` now covers the token callback.
+The iOS-only code compiles only on macOS, so it was not compiled here.
+
+## 0.7.12 - Keep the biometric lock closed when biometrics are unavailable
+
+An external review (26/10/2026) found that, with the lock on, `biometricGate` let the app through when
+`checkStatus()` threw or reported biometrics unavailable. On iOS "unavailable" includes a lockout, so
+someone holding an unlocked phone could fail Face ID five times, relaunch, and open the ShvIA session
+with no prompt. `docs/current-state.md` listed it as a limitation.
+
+The gate's decision now lives in `src/trava.ts`. With the lock on, a lockout, removed biometrics or a
+failed status query inside the shell all ask, and the prompt is the device passcode
+(`allowDeviceCredential`, already passed). A device with no passcode at all cannot be locked, and the
+app lets the person in, by the owner's decision of 27/10/2026. That covers `passcodeNotSet` in the
+status, and `passcodeNotSet` / `noDeviceCredential` from the prompt.
+
+Tests: `npm run prova:trava` (new; 14 cases of the decision, run by CI). Not verified here: the gate
+needs device acceptance on iOS and Android (`docs/smoke-test.md` §Biometrics, step 3).
+
 ## 0.7.11 - Preserve existing documents when staging an iOS export
 
 iOS export wrote to Documents/<suggested-name> before opening the save sheet and

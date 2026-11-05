@@ -21,6 +21,7 @@
 
 import { version } from "../package.json";
 import { invoke } from "@tauri-apps/api/core";
+import { decidirTrava, semCredencialNoAparelho } from "./trava";
 import {
   authenticate,
   checkStatus,
@@ -111,21 +112,30 @@ function runOptIn(name: string): Promise<void> {
 
 // Cold-start com trava ativa: auto-prompta; se falhar, revela "Desativar
 // bloqueio" (que TAMBÉM exige autenticar — senão qualquer um desligaria a trava).
-function runLock(name: string): Promise<void> {
+// `semBiometria`: biometrics are unavailable right now (lockout, not enrolled) or the status query
+// failed; the prompt is then the device passcode (`allowDeviceCredential`), and the screen says so.
+function runLock(name: string, semBiometria = false): Promise<void> {
   return new Promise((resolve) => {
     const tryUnlock = async () => {
       try {
-        await authenticate(`Desbloqueie o ShvIA com ${name}`, authOpts(name));
+        await authenticate(`Desbloqueie o ShvIA com ${semBiometria ? "a senha do aparelho" : name}`, authOpts(name));
         lockEl.hidden = true;
         resolve();
-      } catch {
+      } catch (erro) {
+        // No passcode or screen lock on the device: nothing can unlock the gate, so let the person
+        // in rather than trap them here (owner's decision, 27/10/2026; see src/trava.ts).
+        if (semCredencialNoAparelho(erro)) {
+          lockEl.hidden = true;
+          resolve();
+          return;
+        }
         lockMsgEl.textContent = "Não desbloqueou. Toque em Desbloquear pra tentar de novo.";
         lockSecondaryEl.hidden = false;
       }
     };
     showLock("lock", {
       title: "ShvIA bloqueado",
-      msg: `Use o ${name} para desbloquear.`,
+      msg: semBiometria ? "Use a senha do aparelho para desbloquear." : `Use o ${name} para desbloquear.`,
       primary: "Desbloquear",
       secondary: "Desativar bloqueio",
       hideSecondary: true,
@@ -145,34 +155,36 @@ function runLock(name: string): Promise<void> {
   });
 }
 
-// Resolve quando pode seguir pro ShvIA: destravado, OU biometria off/ausente no
-// aparelho. Com a trava ativa, nunca resolve sem auth — em falha re-prompta (fica
-// na tela), então proceedToShvia só navega no resolve.
-// Resolves to whether the lock is ACTIVE afterwards (on, and the device has
-// biometrics): the native side needs it to relock when the app comes back.
+// Resolves when the app may go on to ShvIA. With the lock on, it never resolves without an
+// authentication, including when biometrics are unavailable or the status query failed: the device
+// passcode stands in (`decidirTrava`, src/trava.ts — until 0.7.12 both cases let the app through).
+// Resolves to whether the lock is ACTIVE afterwards: the native side needs it to relock when the app
+// comes back.
 async function biometricGate(): Promise<boolean> {
   const pref = localStorage.getItem(BIO_KEY);
-  if (pref === "off") return false;
-
-  let status: Status;
-  try {
-    status = await checkStatus();
-  } catch {
-    return false; // sem bridge nativo (dev no navegador/desktop) → não trava
+  let status: Status | undefined;
+  let statusFalhou = false;
+  if (pref !== "off") {
+    try {
+      status = await checkStatus();
+    } catch {
+      statusFalhou = true;
+    }
   }
-  if (!status.isAvailable) return false; // aparelho sem biometria → não trava
+  const decisao = decidirTrava({ emTauri: "__TAURI_INTERNALS__" in window, pref, status, statusFalhou });
+  if (decisao === "seguir") return false;
 
   const name =
-    status.biometryType === BiometryType.FaceID
+    status?.biometryType === BiometryType.FaceID
       ? "Face ID"
-      : status.biometryType === BiometryType.TouchID
+      : status?.biometryType === BiometryType.TouchID
         ? "Touch ID"
         : "biometria";
 
-  if (pref === null) {
+  if (decisao === "oferecer") {
     await runOptIn(name);
   } else {
-    await runLock(name); // pref === "on"
+    await runLock(name, statusFalhou || status?.isAvailable === false);
   }
   // "Agora não" and "Desativar bloqueio" both leave "off" behind.
   return localStorage.getItem(BIO_KEY) === "on";
