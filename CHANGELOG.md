@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.15 - The Claude Code profile README describes this repository's settings, not the desktop's
+
+`.claude/README.md` was titled "ShvIA Desktop" and named a Python sidecar this
+repository has never had. Its deny-list section listed entries `settings.json` does
+not contain (`.env`, `git push --force`, `git reset --hard`, `git clean -fd`) and put
+`rm -rf` and `curl|sh` under deny, although they are in `ask`. The README now
+matches the file as it is and lists `launch.json` and the vendored loop-work skill.
+`settings.json` is unchanged. Documentation only.
+
 ## 0.7.15 - The operations guide flags Tauri's own Android versionCode formula
 
 `scripts/sync-version.mjs` writes `major*1_000_000 + minor*10_000 + patch*100` into

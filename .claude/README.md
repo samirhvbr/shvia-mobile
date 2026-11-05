@@ -1,15 +1,19 @@
-# Claude Code profile — ShvIA Desktop
+# Claude Code profile — ShvIA Mobile
 
 This project's `.claude/` follows the Blue3/samirhvbr house pattern: permission
-posture, and nothing that chooses a model. Target stack: **Tauri 2 (Rust) + web
-shell (npm/Vite) + Python sidecar (arrives in F2)** — the server is remote, so
-**no database and no secret runs here**.
+posture, and nothing that chooses a model. Stack: **Tauri 2 (Rust) + web shell
+(npm/Vite) for iOS and Android**, with no sidecar — the server is remote, so
+**no database and no secret runs here**. (The Python sidecar named in
+`settings.json`'s comment and in `.gitignore` was copied from the desktop profile;
+this repository has none.)
 
 ## Files
 
 | File | Role |
 |---------|-------|
-| `settings.json` | The **active** profile (versioned). Today = `defaultMode: plan`, `effortLevel: xhigh`, and only the security **deny-list**. It chooses **no model**. |
+| `settings.json` | The **active** profile (versioned). Today = `defaultMode: plan`, `effortLevel: xhigh`, a short security **deny-list** and an **ask-list**. It chooses **no model**. |
+| `launch.json` | Launch configuration `shvia-mobile-ui`: `npm run dev` on port 1420 (the startup-page preview). |
+| `skills/loop-work/`, `prompts/` | Vendored copy of the loop-work skill and its prompt templates; see `skills/loop-work/VERSION.md`. Change it upstream, not here. |
 
 > The **allow-list** (shortcuts that avoid repeated prompts) is deliberately
 > **not** in `settings.json`: granting the agent a permission is **your** act.
@@ -51,8 +55,12 @@ shell (npm/Vite) + Python sidecar (arrives in F2)** — the server is remote, so
 - **`defaultMode: plan`** — the agent plans before acting. It keeps the habit of
   reviewing structural changes before touching code.
 
-## Deny-list (already in `settings.json`)
+## Deny-list and ask-list (already in `settings.json`)
 
-Blocks reading `.env`/keys (`*.pem`/`*.key`/`*.p8`/`*.p12`/`*.pfx`), `rm -rf`,
-`git push --force/-f`, `git reset --hard`, `git clean -fd` and
-`curl|sh`/`wget|sh`. **Do not loosen** it without a documented reason.
+- **deny:** reading key files (`*.pem`, `*.key`, `*.p8`, `*.p12`, `*.pfx`).
+- **ask:** `rm -rf` and piping `curl`/`wget` into `sh`/`bash`.
+
+That is all this file holds. It does **not** deny reading `.env` files, and it
+does not list `git push --force`, `git reset --hard` or `git clean -fd`; any
+protection against those comes from your own Claude Code settings, not from this
+repository. **Do not loosen** the lists without a documented reason.
