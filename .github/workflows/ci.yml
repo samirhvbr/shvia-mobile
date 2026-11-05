@@ -85,3 +85,6 @@ jobs:
       # failed status query asks for the device passcode instead of letting the app through (0.7.12).
       - name: Trava biométrica
         run: npm run prova:trava
+
+      - name: Push token origin at evaluation time
+        run: npm run prova:push

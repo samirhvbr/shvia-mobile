@@ -132,7 +132,8 @@ fn push_token_js(token: &str) -> Option<String> {
         return None;
     }
     Some(format!(
-        "window.__shviaPushPlatform='ios';window.__shviaPushToken='{token}';window.dispatchEvent(new Event('shvia:push-token'));"
+        "({})('{token}',{SERVER_HOSTS:?});",
+        include_str!("push_token.js")
     ))
 }
 
@@ -574,7 +575,7 @@ pub fn run() {
 mod tests {
     use super::{
         alvo_da_retrava, decodificar_ate, e_login_do_github, is_internal, nome_seguro,
-        recebe_script_da_casca, retrava_js, PONTE_SALVAR_JS, SERVER_HOSTS,
+        push_token_js, recebe_script_da_casca, retrava_js, PONTE_SALVAR_JS, SERVER_HOSTS,
     };
 
     /// The page supplies the name, so it is cleaned, never trusted as a path.
@@ -755,6 +756,16 @@ mod tests {
         assert!(!recebe_script_da_casca(&url("https://github.com/login/oauth/authorize")));
         assert!(!recebe_script_da_casca(&url("http://ai.shvia.org/")));
         assert!(!recebe_script_da_casca(&url("tauri://localhost/index.html")));
+    }
+
+    #[test]
+    fn token_de_push_usa_a_guarda_no_contexto_da_pagina() {
+        for invalid in ["", "xyz", "aa';alert(1);//"] {
+            assert!(push_token_js(invalid).is_none());
+        }
+        let js = push_token_js("aB012f").unwrap();
+        assert!(js.starts_with(&format!("({}", include_str!("push_token.js"))));
+        assert!(js.ends_with(&format!(")('aB012f',{SERVER_HOSTS:?});")));
     }
 
     fn url(u: &str) -> tauri::Url {

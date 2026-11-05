@@ -62,7 +62,10 @@ Web operational concern.
 Normal page-load injection is restricted to ShvIA hosts. Since 0.7.13 the
 asynchronous token callback goes through the same filter: it evaluates the token
 only when the webview is on a ShvIA page, and otherwise leaves it stored for the
-next ShvIA load. Before that it evaluated into whatever page was current, GitHub's
+next ShvIA load. Since 0.7.14 the delivery script also checks the page's HTTPS
+protocol and hostname when it executes, covering navigation after the native URL
+check. `npm run prova:push` exercises that race with the included delivery function.
+Before that it evaluated into whatever page was current, GitHub's
 sign-in included (external review, 26/10/2026). Tap routes still act on the current
 page. Host tests check the filter in source; device acceptance during OAuth, logout
 and the biometric gate is still required.

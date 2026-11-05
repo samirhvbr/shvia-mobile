@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.14 - Recheck the push token destination when its script executes
+
+The native callback checks the current URL before scheduling token delivery, but navigation can
+finish before the queued JavaScript runs. The delivery function now checks the HTTPS protocol and
+ShvIA hostname in the page itself, on both callback and page-load delivery. Other origins receive
+neither the token nor the event; a later ShvIA load still receives the stored token.
+
+Validation: `prova:push` exercises the actual included delivery function for allowed hosts, OAuth,
+lookalike hosts, HTTP, the local shell, and navigation between the native check and evaluation. Rust
+tests verify that the generated script uses this function and the native host list, and rejects
+invalid token strings. Installed-device acceptance remains separate.
+
 ## 0.7.13 - Deliver the asynchronous push token only to ShvIA pages
 
 The page-load injection is limited to ShvIA hosts (`recebe_script_da_casca`), but the iOS APNs token

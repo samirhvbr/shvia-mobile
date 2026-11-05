@@ -1,7 +1,7 @@
 {
   "name": "shvia-mobile",
   "private": true,
-  "version": "0.7.13",
+  "version": "0.7.14",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,6 +13,7 @@
     "prova:bump": "node scripts/sync-version.mjs --verificar",
     "prova:icones": "node scripts/verify-icons.mjs",
     "prova:trava": "node --experimental-strip-types scripts/prova-trava.mjs",
+    "prova:push": "node scripts/prova-push.mjs",
     "icones:selar": "node scripts/verify-icons.mjs --selar"
   },
   "dependencies": {
