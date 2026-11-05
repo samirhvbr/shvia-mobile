@@ -50,6 +50,8 @@ npm ci --no-audit --no-fund
 npm run build
 npm run prova:bump
 npm run prova:icones
+npm run prova:trava
+npm run prova:push
 cargo test --locked --manifest-path src-tauri/Cargo.toml
 ```
 
