@@ -413,8 +413,10 @@ pub fn run() {
     builder
         .invoke_handler(tauri::generate_handler![trava_biometrica, salvar_arquivo])
         .on_window_event(|janela, evento| {
-            // Mobile only: `Resumed` is Android's `onResume` and iOS's
-            // `applicationWillEnterForeground` (the Face ID prompt itself does not fire it).
+            // Mobile only: `Resumed` is Android's `onResume` and iOS's `sceneWillEnterForeground`
+            // (the app declares the scene manifest, and tao 0.37.1 raises `Resumed` from that
+            // callback in scene mode; `applicationWillEnterForeground` is its path for apps
+            // without scenes). The Face ID prompt itself does not fire it.
             #[cfg(mobile)]
             {
                 if let tauri::WindowEvent::Resumed = evento {

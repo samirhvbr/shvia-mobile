@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.15 - The resume comment in lib.rs names sceneWillEnterForeground, the callback tao 0.37.1 uses in scene mode
+
+The comment above the mobile `Resumed` handler still said iOS's
+`applicationWillEnterForeground`. The app has declared the scene manifest since 0.7.7,
+and in scene mode tao 0.37.1 raises `WindowEvent::Resumed` from
+`sceneWillEnterForeground`; `applicationWillEnterForeground` is its path for apps
+without scenes (`platform_impl/ios/mod.rs` lists both). The handbook and the ADR note
+of this version already said so, and the code comment contradicted them. A comment
+only: no code, behaviour or test changed.
+
 ## 0.7.15 - A November note in the ADRs qualifies three references that no longer read as written
 
 `docs/decisoes.md` gains a dated note under the existing implementation note:
