@@ -44,6 +44,12 @@ publishes the current version (marked `Latest` when it creates it), and
 is skipped; this copy of the script does not move the `Latest` badge of an
 existing Release. Publishing is a deliberate act; the dry run is always safe.
 
+The Release notes are the version's CHANGELOG sections: every `## X.Y.Z` heading
+that names the version (a delivery split into blocks, as 0.7.15 is, has several),
+each with its heading when there is more than one. A version with no section gets
+its commit subjects instead. A Release already published keeps the notes it was
+created with.
+
 ## Generated project invariants
 
 The native projects are committed. Regeneration needs an entire diff review:
