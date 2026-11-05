@@ -20,6 +20,12 @@ This scheme reserves two decimal places per component; larger components need a
 deliberate scheme change. It compares the local generated file, not Play's
 highest uploaded build.
 
+The Tauri CLI also writes `tauri.properties` during `tauri android dev/build`, and
+its documented default is a different formula, `major*1_000_000 + minor*1_000 + patch`
+(`AndroidConfig::version_code` in tauri-utils). Which of the two values reaches a
+built APK has not been measured. Read it from the artifact before an upload:
+`aapt2 dump badging <apk> | grep versionCode`.
+
 iOS version/build fields follow the repository version. Each upload needs an
 acceptable unused build number: inspect the exported binary and latest portal
 upload, since export settings can manage numbering independently.
